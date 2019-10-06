@@ -3,6 +3,7 @@
 #include <FS.h>
 
 #define HOSTNAME "ventilatore"
+#define RELAY D1
 
 ESP8266WebServer server;
 
@@ -10,6 +11,9 @@ void setup()
 {
     Serial.begin(9600);
     SPIFFS.begin();
+
+    pinMode(RELAY, OUTPUT);
+    digitalWrite(RELAY, LOW);
 
     WiFi.hostname(HOSTNAME);
 
@@ -25,6 +29,16 @@ void setup()
             });
 
     server.serveStatic("/", SPIFFS, "/index.html");
+
+    server.on("/on", []{
+            digitalWrite(RELAY, HIGH);
+            server.send(200, "text/plain", "OK");
+            });
+
+    server.on("/off", []{
+            digitalWrite(RELAY, LOW);
+            server.send(200, "text/plain", "OK");
+            });
 
     server.begin();
 }
