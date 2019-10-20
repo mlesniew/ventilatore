@@ -7,19 +7,34 @@
 #include <WiFiManager.h>
 #include <Wire.h>
 
+#include "stopwatch.h"
+
 #define HOSTNAME "ventilatore"
 #define RELAY D8
+#define MEASUREMENT_INTERVAL 5000
 
 BME280I2C bme280;
 ESP8266WebServer server;
 TM1637Display display(D6 /* clk */, D5 /* dio */);
+Stopwatch stopwatch;
+
+struct Measurements {
+    float temp, hum, pres;
+} measurements;
+
+void update_readings() {
+    bme280.read(measurements.pres, measurements.temp, measurements.hum,
+                BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
+    printf("T:  %.1f *C    H: %.1f %%    P: %.1f hPa\n",
+           measurements.temp, measurements.hum, measurements.pres);
+}
 
 void setup()
 {
     Serial.begin(9600);
     display.clear();
     display.setBrightness(7);
-    display.showText("bOOt");
+    display.showText("init");
 
     SPIFFS.begin();
 
@@ -73,18 +88,15 @@ void setup()
             });
 
     server.on("/temperature", []{
-            const auto reading = bme280.temp();
-            server.send(200, "text/plain", String(reading));
+            server.send(200, "text/plain", String(measurements.temp));
             });
 
     server.on("/humidity", []{
-            const auto reading = bme280.hum();
-            server.send(200, "text/plain", String(reading));
+            server.send(200, "text/plain", String(measurements.hum));
             });
 
     server.on("/pressure", []{
-            const auto reading = bme280.pres(BME280::PresUnit_hPa);
-            server.send(200, "text/plain", String(reading));
+            server.send(200, "text/plain", String(measurements.pres));
             });
 
     server.on("/readings", []{
@@ -94,10 +106,8 @@ void setup()
                 "\"humidity\":%.1f,"
                 "\"pressure\":%.1f"
                 "}";
-            float temp(NAN), hum(NAN), pres(NAN);
-            bme280.read(pres, temp, hum,
-                        BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
-            snprintf(buf, 80, pattern, temp, hum, pres);
+            snprintf(buf, 80, pattern,
+                     measurements.temp, measurements.hum, measurements.pres);
             server.send(200, "text/plain", buf);
             });
 
@@ -109,4 +119,12 @@ void setup()
 void loop()
 {
     server.handleClient();
+
+    if (stopwatch.elapsedMillis() >= MEASUREMENT_INTERVAL) {
+        // it's time to read the data again
+        update_readings();
+        display.showText("H");
+        display.showNumberDec(measurements.hum, false, 3, 1);
+        stopwatch.reset();
+    }
 }
