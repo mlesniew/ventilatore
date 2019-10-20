@@ -4,3 +4,6 @@
 [submodule "lib/TM1637"]
 	path = lib/TM1637
 	url = https://github.com/avishorp/TM1637
+[submodule "lib/BME280"]
+	path = lib/BME280
+	url = https://github.com/finitespace/BME280
