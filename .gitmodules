@@ -1,3 +1,6 @@
 [submodule "lib/WiFiManager"]
 	path = lib/WiFiManager
 	url = https://github.com/tzapu/WiFiManager.git
+[submodule "lib/TM1637"]
+	path = lib/TM1637
+	url = https://github.com/avishorp/TM1637
