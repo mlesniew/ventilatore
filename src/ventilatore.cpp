@@ -8,6 +8,7 @@
 #include <Wire.h>
 
 #include "stopwatch.h"
+#include "led.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
@@ -17,6 +18,7 @@ BME280I2C bme280;
 ESP8266WebServer server;
 TM1637Display display(D6 /* clk */, D5 /* dio */);
 Stopwatch stopwatch;
+BlinkingLed wifi_led(D4, 0, 250, true);
 
 struct Measurements {
     float temp, hum, pres;
@@ -63,9 +65,8 @@ void setup()
     digitalWrite(RELAY, LOW);
 
     WiFi.hostname(HOSTNAME);
-
-    WiFiManager wifiManager;
-    wifiManager.autoConnect(HOSTNAME, "secret");
+    WiFi.begin("", "");
+    WiFi.setAutoReconnect(true);
 
     server.on("/version", []{
             server.send(200, "text/plain", __DATE__ " " __TIME__);
@@ -129,4 +130,27 @@ void loop()
         display.showNumberDec(measurements.hum, false, 3, 1);
         stopwatch.reset();
     }
+
+    static wl_status_t previous_wifi_status = WL_NO_SHIELD;
+    wl_status_t current_wifi_status = WiFi.status();
+
+    if (current_wifi_status != previous_wifi_status) {
+        switch (current_wifi_status)
+        {
+            case WL_CONNECTED:
+                wifi_led.set_pattern(1);
+                break;
+            case WL_DISCONNECTED:
+                wifi_led.set_pattern(0);
+                break;
+            default:
+                wifi_led.set_pattern(0b10);
+                break;
+        }
+        printf("WiFi: %i -> %i\n", (int)(previous_wifi_status), (int)(current_wifi_status));
+        previous_wifi_status = current_wifi_status;
+    }
+
+    wifi_led.tick();
+
 }
