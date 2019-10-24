@@ -39,6 +39,8 @@ void setup()
     SPIFFS.begin();
 
     Wire.begin();
+    Wire.setClock(10000); // use slow speed mode
+
     while(!bme280.begin())
     {
         Serial.println("Could not find BME280 sensor!");
