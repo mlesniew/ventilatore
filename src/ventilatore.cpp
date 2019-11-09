@@ -14,7 +14,30 @@
 #define RELAY D8
 #define MEASUREMENT_INTERVAL 5000
 
-BME280I2C bme280;
+BME280I2C sensors[] = {
+    BME280I2C(BME280I2C::Settings(
+                BME280::OSR_X1,
+                BME280::OSR_X1,
+                BME280::OSR_X1,
+                BME280::Mode_Forced,
+                BME280::StandbyTime_1000ms,
+                BME280::Filter_Off,
+                BME280::SpiEnable_False,
+                0x76
+                )),
+
+    BME280I2C(BME280I2C::Settings(
+                BME280::OSR_X1,
+                BME280::OSR_X1,
+                BME280::OSR_X1,
+                BME280::Mode_Forced,
+                BME280::StandbyTime_1000ms,
+                BME280::Filter_Off,
+                BME280::SpiEnable_False,
+                0x77
+                ))
+};
+
 ESP8266WebServer server;
 TM1637Display display(D6 /* clk */, D5 /* dio */);
 Stopwatch stopwatch;
@@ -22,13 +45,16 @@ BlinkingLed wifi_led(D4, 0, 250, true);
 
 struct Measurements {
     float temp, hum, pres;
-} measurements;
+} measurements[2];
 
 void update_readings() {
-    bme280.read(measurements.pres, measurements.temp, measurements.hum,
-                BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
-    printf("T:  %.1f *C    H: %.1f %%    P: %.1f hPa\n",
-           measurements.temp, measurements.hum, measurements.pres);
+    printf("Reading sensors...\n");
+    for (int i = 0; i < 2; ++i) {
+        sensors[i].read(measurements[i].pres, measurements[i].temp, measurements[i].hum,
+                        BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
+        printf("S%i    T:  %.1f *C    H: %.1f %%    P: %.1f hPa\n",
+               i, measurements[i].temp, measurements[i].hum, measurements[i].pres);
+    }
 }
 
 void setup()
@@ -41,24 +67,24 @@ void setup()
     SPIFFS.begin();
 
     Wire.begin();
-    Wire.setClock(10000); // use slow speed mode
+    Wire.setClock(1000); // use slow speed mode
 
-    while(!bme280.begin())
-    {
-        Serial.println("Could not find BME280 sensor!");
-        delay(1000);
-    }
-
-    switch(bme280.chipModel())
-    {
-        case BME280::ChipModel_BME280:
-            Serial.println("Found BME280 sensor! Success.");
-            break;
-        case BME280::ChipModel_BMP280:
-            Serial.println("Found BMP280 sensor! No Humidity available.");
-            break;
-        default:
-            Serial.println("Found UNKNOWN sensor! Error!");
+    for (unsigned int i = 0; i < 2; ++i) {
+        while(!sensors[i].begin()) {
+            printf("Could not find BME280 sensor #%i.\n", i);
+            delay(1000);
+        }
+        switch(sensors[i].chipModel())
+        {
+            case BME280::ChipModel_BME280:
+                Serial.println("Found BME280 sensor! Success.");
+                break;
+            case BME280::ChipModel_BMP280:
+                Serial.println("Found BMP280 sensor! No Humidity available.");
+                break;
+            default:
+                Serial.println("Found UNKNOWN sensor! Error!");
+        }
     }
 
     pinMode(RELAY, OUTPUT);
@@ -91,15 +117,15 @@ void setup()
             });
 
     server.on("/temperature", []{
-            server.send(200, "text/plain", String(measurements.temp));
+            server.send(200, "text/plain", String(measurements[0].temp));
             });
 
     server.on("/humidity", []{
-            server.send(200, "text/plain", String(measurements.hum));
+            server.send(200, "text/plain", String(measurements[0].hum));
             });
 
     server.on("/pressure", []{
-            server.send(200, "text/plain", String(measurements.pres));
+            server.send(200, "text/plain", String(measurements[0].pres));
             });
 
     server.on("/readings", []{
@@ -110,7 +136,7 @@ void setup()
                 "\"pressure\":%.1f"
                 "}";
             snprintf(buf, 80, pattern,
-                     measurements.temp, measurements.hum, measurements.pres);
+                     measurements[0].temp, measurements[0].hum, measurements[0].pres);
             server.send(200, "text/plain", buf);
             });
 
@@ -127,7 +153,7 @@ void loop()
         // it's time to read the data again
         update_readings();
         display.showText("H");
-        display.showNumberDec(measurements.hum, false, 3, 1);
+        display.showNumberDec(measurements[0].hum, false, 3, 1);
         stopwatch.reset();
     }
 
