@@ -7,3 +7,6 @@
 [submodule "lib/BME280"]
 	path = lib/BME280
 	url = https://github.com/finitespace/BME280
+[submodule "lib/OneButton"]
+	path = lib/OneButton
+	url = https://github.com/mathertel/OneButton.git

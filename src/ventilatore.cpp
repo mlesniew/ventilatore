@@ -7,12 +7,25 @@
 #include <WiFiManager.h>
 #include <Wire.h>
 
+#include <OneButton.h>
+
 #include "stopwatch.h"
 #include "led.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
 #define MEASUREMENT_INTERVAL 5000
+
+enum display_state_t {
+    DISPLAY_STATE_FIRST,
+    HUMIDITY_1 = DISPLAY_STATE_FIRST,
+    HUMIDITY_2,
+    TEMPERATURE_1,
+    TEMPERATURE_2,
+    PRESSURE_1,
+    PRESSURE_2,
+    DISPLAY_STATE_LAST
+} display_state = HUMIDITY_1;
 
 BME280I2C sensors[] = {
     BME280I2C(BME280I2C::Settings(
@@ -42,6 +55,7 @@ ESP8266WebServer server;
 TM1637Display display(D6 /* clk */, D5 /* dio */);
 Stopwatch stopwatch;
 BlinkingLed wifi_led(D4, 0, 250, true);
+OneButton button(D0, false);
 
 struct Measurements {
     float temp, hum, pres;
@@ -54,6 +68,36 @@ void update_readings() {
                         BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
         printf("S%i    T:  %.1f *C    H: %.1f %%    P: %.1f hPa\n",
                i, measurements[i].temp, measurements[i].hum, measurements[i].pres);
+    }
+}
+
+void update_display()
+{
+    switch (display_state) {
+        case HUMIDITY_1:
+            display.showText("H1");
+            display.showNumberDec(measurements[0].hum, false, 2, 2);
+            break;
+        case TEMPERATURE_1:
+            display.showText("t1");
+            display.showNumberDec(measurements[0].temp, false, 2, 2);
+            break;
+        case PRESSURE_1:
+            display.showText("P1");
+            display.showNumberDec(measurements[0].pres / 100, false, 2, 2);
+            break;
+        case HUMIDITY_2:
+            display.showText("H2");
+            display.showNumberDec(measurements[1].hum, false, 2, 2);
+            break;
+        case TEMPERATURE_2:
+            display.showText("t2");
+            display.showNumberDec(measurements[1].temp, false, 2, 2);
+            break;
+        case PRESSURE_2:
+            display.showText("P2");
+            display.showNumberDec(measurements[1].pres / 100, false, 2, 2);
+            break;
     }
 }
 
@@ -93,6 +137,13 @@ void setup()
     WiFi.hostname(HOSTNAME);
     WiFi.begin("", "");
     WiFi.setAutoReconnect(true);
+
+    button.attachClick([] {
+        display_state = static_cast<display_state_t>(static_cast<int>(display_state) + 1);
+        if (display_state == DISPLAY_STATE_LAST)
+            display_state = DISPLAY_STATE_FIRST;
+        update_display();
+        });
 
     server.on("/version", []{
             server.send(200, "text/plain", __DATE__ " " __TIME__);
@@ -152,8 +203,7 @@ void loop()
     if (stopwatch.elapsedMillis() >= MEASUREMENT_INTERVAL) {
         // it's time to read the data again
         update_readings();
-        display.showText("H");
-        display.showNumberDec(measurements[0].hum, false, 3, 1);
+        update_display();
         stopwatch.reset();
     }
 
@@ -178,5 +228,6 @@ void loop()
     }
 
     wifi_led.tick();
+    button.tick();
 
 }
