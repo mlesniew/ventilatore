@@ -178,6 +178,32 @@ void setup()
             server.send(200, "application/json", buf);
             });
 
+    server.on("/metrics", []{
+            const char pattern[] =
+                "# HELP fan_status Fan status\n"
+                "# TYPE fan_status gauge\n"
+                "fan_status %i\n"
+                "# HELP temperature Air temperature in degrees Celsius\n"
+                "# TYPE temperature gauge\n"
+                "temperature{sensor=\"inside\"} %.1f\n"
+                "temperature{sensor=\"outside\"} %.1f\n"
+                "# HELP pressure Air pressure in hectopascal\n"
+                "# TYPE pressure gauge\n"
+                "pressure{sensor=\"inside\"} %.1f\n"
+                "pressure{sensor=\"outside\"} %.1f\n"
+                "# HELP humidity Relative air humidity in percent\n"
+                "# TYPE humidity gauge\n"
+                "humidity{sensor=\"inside\"} %.1f\n"
+                "humidity{sensor=\"outside\"} %.1f\n";
+            char buf[800]; // pattern lenght is around 550
+            snprintf(buf, 800, pattern,
+                    1,
+                    measurements[0].temp, measurements[1].temp,
+                    measurements[0].pres, measurements[1].pres,
+                    measurements[0].hum, measurements[1].hum);
+            server.send(200, "text/plain", buf);
+            });
+
     server.begin();
 
     display.showText("LOOP");
