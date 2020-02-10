@@ -52,7 +52,7 @@ BME280I2C sensors[] = {
 };
 
 ESP8266WebServer server;
-TM1637Display display(D6 /* clk */, D5 /* dio */);
+TM1637Display display(D6 /* clk */, D7 /* dio */);
 Stopwatch stopwatch;
 BlinkingLed wifi_led(D4, 0, 250, true);
 OneButton button(D0, false);
