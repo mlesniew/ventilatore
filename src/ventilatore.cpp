@@ -167,28 +167,15 @@ void setup()
             server.send(200, "text/plain", "OK");
             });
 
-    server.on("/temperature", []{
-            server.send(200, "text/plain", String(measurements[0].temp));
-            });
-
-    server.on("/humidity", []{
-            server.send(200, "text/plain", String(measurements[0].hum));
-            });
-
-    server.on("/pressure", []{
-            server.send(200, "text/plain", String(measurements[0].pres));
-            });
-
-    server.on("/readings", []{
-            char buf[80];
-            const char pattern[] = "{"
-                "\"temperature\":%.1f,"
-                "\"humidity\":%.1f,"
-                "\"pressure\":%.1f"
-                "}";
-            snprintf(buf, 80, pattern,
-                     measurements[0].temp, measurements[0].hum, measurements[0].pres);
-            server.send(200, "text/plain", buf);
+    server.on("/status", []{
+            const char pattern[] =
+                "{\"fan_running\":%s,\"inside\":{\"temperature\":%.1f,\"pressure\":%.1f,\"humidity\":%.1f},\"outside\":{\"temperature\":%.1f,\"pressure\":%.1f,\"humidity\":%.1f}}";
+            char buf[200];
+            snprintf(buf, 200, pattern,
+                    "true",
+                    measurements[0].temp, measurements[0].hum, measurements[0].pres,
+                    measurements[1].temp, measurements[1].hum, measurements[1].pres);
+            server.send(200, "application/json", buf);
             });
 
     server.begin();
