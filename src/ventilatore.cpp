@@ -173,8 +173,8 @@ void setup()
             char buf[200];
             snprintf(buf, 200, pattern,
                     "true",
-                    measurements[0].temperature, measurements[0].humidity, measurements[0].pressure,
-                    measurements[1].temperature, measurements[1].humidity, measurements[1].pressure);
+                    measurements[0].temperature, measurements[0].pressure, measurements[0].humidity,
+                    measurements[1].temperature, measurements[1].pressure, measurements[1].humidity);
             server.send(200, "application/json", buf);
             });
 
@@ -242,5 +242,4 @@ void loop()
 
     wifi_led.tick();
     button.tick();
-
 }
