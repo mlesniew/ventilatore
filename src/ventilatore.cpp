@@ -58,16 +58,16 @@ BlinkingLed wifi_led(D4, 0, 250, true);
 OneButton button(D0, false);
 
 struct Measurements {
-    float temp, hum, pres;
+    float temperature, humidity, pressure;
 } measurements[2];
 
 void update_readings() {
     printf("Reading sensors...\n");
     for (int i = 0; i < 2; ++i) {
-        sensors[i].read(measurements[i].pres, measurements[i].temp, measurements[i].hum,
+        sensors[i].read(measurements[i].pressure, measurements[i].temperature, measurements[i].humidity,
                         BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
-        printf("S%i    T:  %.1f *C    H: %.1f %%    P: %.1f hPa\n",
-               i, measurements[i].temp, measurements[i].hum, measurements[i].pres);
+        printf("S%i    T:  %.1f °C    H: %.1f %%    P: %.1f hPa\n",
+               i, measurements[i].temperature, measurements[i].humidity, measurements[i].pressure);
     }
 }
 
@@ -76,27 +76,27 @@ void update_display()
     switch (display_state) {
         case HUMIDITY_1:
             display.showText("H1");
-            display.showNumberDec(measurements[0].hum, false, 2, 2);
+            display.showNumberDec(measurements[0].humidity, false, 2, 2);
             break;
         case TEMPERATURE_1:
             display.showText("t1");
-            display.showNumberDec(measurements[0].temp, false, 2, 2);
+            display.showNumberDec(measurements[0].temperature, false, 2, 2);
             break;
         case PRESSURE_1:
             display.showText("P1");
-            display.showNumberDec(measurements[0].pres / 100, false, 2, 2);
+            display.showNumberDec(measurements[0].pressure / 100, false, 2, 2);
             break;
         case HUMIDITY_2:
             display.showText("H2");
-            display.showNumberDec(measurements[1].hum, false, 2, 2);
+            display.showNumberDec(measurements[1].humidity, false, 2, 2);
             break;
         case TEMPERATURE_2:
             display.showText("t2");
-            display.showNumberDec(measurements[1].temp, false, 2, 2);
+            display.showNumberDec(measurements[1].temperature, false, 2, 2);
             break;
         case PRESSURE_2:
             display.showText("P2");
-            display.showNumberDec(measurements[1].pres / 100, false, 2, 2);
+            display.showNumberDec(measurements[1].pressure / 100, false, 2, 2);
             break;
     }
 }
@@ -173,8 +173,8 @@ void setup()
             char buf[200];
             snprintf(buf, 200, pattern,
                     "true",
-                    measurements[0].temp, measurements[0].hum, measurements[0].pres,
-                    measurements[1].temp, measurements[1].hum, measurements[1].pres);
+                    measurements[0].temperature, measurements[0].humidity, measurements[0].pressure,
+                    measurements[1].temperature, measurements[1].humidity, measurements[1].pressure);
             server.send(200, "application/json", buf);
             });
 
@@ -198,9 +198,9 @@ void setup()
             char buf[800]; // pattern lenght is around 550
             snprintf(buf, 800, pattern,
                     1,
-                    measurements[0].temp, measurements[1].temp,
-                    measurements[0].pres, measurements[1].pres,
-                    measurements[0].hum, measurements[1].hum);
+                    measurements[0].temperature, measurements[1].temperature,
+                    measurements[0].pressure, measurements[1].pressure,
+                    measurements[0].humidity, measurements[1].humidity);
             server.send(200, "text/plain", buf);
             });
 
