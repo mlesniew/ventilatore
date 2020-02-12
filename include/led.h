@@ -1,6 +1,8 @@
 #ifndef LED_H
 #define LED_H
 
+#include <Ticker.h>
+
 #include "stopwatch.h"
 
 struct BlinkingLed {
@@ -49,6 +51,18 @@ struct BlinkingLed {
     unsigned long interval;
     unsigned char position;
     Stopwatch stopwatch;
+};
+
+struct BackgroundLedController
+{
+    BackgroundLedController(BlinkingLed & led) : led(led) {
+        ticker.attach(float(led.interval) * 0.001, [&led]{ led.tick(); });
+    }
+
+    ~BackgroundLedController() { ticker.detach(); }
+
+    BlinkingLed & led;
+    Ticker ticker;
 };
 
 #endif

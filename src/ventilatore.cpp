@@ -4,11 +4,11 @@
 // This include is not really needed, but PlatformIO fails to compile without it
 #include <SPI.h>
 #include <TM1637Display.h>
-#include <WiFiManager.h>
 #include <Wire.h>
 
 #include <OneButton.h>
 
+#include "wificontrol.h"
 #include "stopwatch.h"
 #include "led.h"
 
@@ -54,8 +54,10 @@ BME280I2C sensors[] = {
 ESP8266WebServer server;
 TM1637Display display(D6 /* clk */, D7 /* dio */);
 Stopwatch stopwatch;
-BlinkingLed wifi_led(D4, 0, 250, true);
+BlinkingLed wifi_led(D4, 0, 91, true);
 OneButton button(D0, false);
+
+WiFiControl wifi_control(HOSTNAME, wifi_led);
 
 struct Measurements {
     float temperature, humidity, pressure;
@@ -134,9 +136,9 @@ void setup()
     pinMode(RELAY, OUTPUT);
     digitalWrite(RELAY, LOW);
 
-    WiFi.hostname(HOSTNAME);
-    WiFi.begin("", "");
-    WiFi.setAutoReconnect(true);
+    // enter WiFi setup mode only if button is pressed during start up
+    bool wifi_setup = digitalRead(D0) == HIGH;
+    wifi_control.init(wifi_setup);
 
     button.attachClick([] {
         display_state = static_cast<display_state_t>(static_cast<int>(display_state) + 1);
@@ -220,26 +222,6 @@ void loop()
         stopwatch.reset();
     }
 
-    static wl_status_t previous_wifi_status = WL_NO_SHIELD;
-    wl_status_t current_wifi_status = WiFi.status();
-
-    if (current_wifi_status != previous_wifi_status) {
-        switch (current_wifi_status)
-        {
-            case WL_CONNECTED:
-                wifi_led.set_pattern(1);
-                break;
-            case WL_DISCONNECTED:
-                wifi_led.set_pattern(0);
-                break;
-            default:
-                wifi_led.set_pattern(0b10);
-                break;
-        }
-        printf("WiFi: %i -> %i\n", (int)(previous_wifi_status), (int)(current_wifi_status));
-        previous_wifi_status = current_wifi_status;
-    }
-
-    wifi_led.tick();
     button.tick();
+    wifi_control.tick();
 }
