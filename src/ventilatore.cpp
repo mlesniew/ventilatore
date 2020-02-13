@@ -3,14 +3,14 @@
 #include <FS.h>
 // This include is not really needed, but PlatformIO fails to compile without it
 #include <SPI.h>
-#include <TM1637Display.h>
 #include <Wire.h>
 
 #include <OneButton.h>
 
-#include "wificontrol.h"
-#include "stopwatch.h"
 #include "led.h"
+#include "scrolling_display.h"
+#include "stopwatch.h"
+#include "wificontrol.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
@@ -51,8 +51,9 @@ BME280I2C sensors[] = {
                 ))
 };
 
+
 ESP8266WebServer server;
-TM1637Display display(D6 /* clk */, D7 /* dio */);
+ScrollingDisplay display{D6 /* clk */, D7 /* dio */, 300};
 Stopwatch stopwatch;
 BlinkingLed wifi_led(D4, 0, 91, true);
 OneButton button(D0, false);
@@ -75,40 +76,37 @@ void update_readings() {
 
 void update_display()
 {
+    char buf[200];
+
     switch (display_state) {
         case HUMIDITY_1:
-            display.showText("H1");
-            display.showNumberDec(measurements[0].humidity, false, 2, 2);
-            break;
-        case TEMPERATURE_1:
-            display.showText("t1");
-            display.showNumberDec(measurements[0].temperature, false, 2, 2);
-            break;
-        case PRESSURE_1:
-            display.showText("P1");
-            display.showNumberDec(measurements[0].pressure / 100, false, 2, 2);
+            snprintf(buf, 200, "Hin %i PErc", int(measurements[0].humidity));
             break;
         case HUMIDITY_2:
-            display.showText("H2");
-            display.showNumberDec(measurements[1].humidity, false, 2, 2);
+            snprintf(buf, 200, "Hout  %i PErc", int(measurements[1].humidity));
             break;
-        case TEMPERATURE_2:
-            display.showText("t2");
-            display.showNumberDec(measurements[1].temperature, false, 2, 2);
+        case PRESSURE_1:
+            snprintf(buf, 200, "Pin %i hPA", int(measurements[0].pressure));
             break;
         case PRESSURE_2:
-            display.showText("P2");
-            display.showNumberDec(measurements[1].pressure / 100, false, 2, 2);
+            snprintf(buf, 200, "Pout  %i hPA", int(measurements[1].pressure));
+            break;
+        case TEMPERATURE_1:
+            snprintf(buf, 200, "tin %i *C", int(measurements[0].temperature));
+            break;
+        case TEMPERATURE_2:
+            snprintf(buf, 200, "tout  %i *C", int(measurements[1].temperature));
             break;
     }
+
+    display.set_next_text(buf);
 }
 
 void setup()
 {
+    display.init();
+    display.set_text("LOAd");
     Serial.begin(9600);
-    display.clear();
-    display.setBrightness(7);
-    display.showText("init");
 
     SPIFFS.begin();
 
@@ -118,6 +116,7 @@ void setup()
     for (unsigned int i = 0; i < 2; ++i) {
         while(!sensors[i].begin()) {
             printf("Could not find BME280 sensor #%i.\n", i);
+            display.set_next_text("SEnSOr ErrOr");
             delay(1000);
         }
         switch(sensors[i].chipModel())
@@ -159,13 +158,11 @@ void setup()
 
     server.on("/on", []{
             digitalWrite(RELAY, HIGH);
-            display.showText(" on ");
             server.send(200, "text/plain", "OK");
             });
 
     server.on("/off", []{
             digitalWrite(RELAY, LOW);
-            display.showText(" oFF");
             server.send(200, "text/plain", "OK");
             });
 
@@ -208,7 +205,7 @@ void setup()
 
     server.begin();
 
-    display.showText("LOOP");
+    display.set_next_text("bLUE dAbAdEE");
 }
 
 void loop()
