@@ -16,6 +16,7 @@ public:
     void set_speed(unsigned long interval);
     void set_text(const char * text, bool immediate = true);
     void set_next_text(const char * text);
+    void clear();
 
 protected:
     char * current_buffer() { return buffer[buffer_index]; }

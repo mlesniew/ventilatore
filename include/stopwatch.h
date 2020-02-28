@@ -1,6 +1,8 @@
 #ifndef STOPWATCH_H
 #define STOPWATCH_H
 
+#include "Arduino.h"
+
 class Stopwatch {
     unsigned long start;
 

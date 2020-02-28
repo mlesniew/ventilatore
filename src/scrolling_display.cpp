@@ -3,7 +3,7 @@
 
 ScrollingDisplay::ScrollingDisplay(unsigned int clk, unsigned int dio, unsigned long interval)
     : display(clk, dio), scroll_position(0), buffer_index(0), buffer_swap_pending(false) {
-    set_text("");
+    clear();
     set_speed(interval);
 }
 
@@ -42,6 +42,10 @@ void ScrollingDisplay::set_text(const char * text, bool immediate) {
     else
         scroll_position = -4;
     buffer_swap_pending = false;
+}
+
+void ScrollingDisplay::clear() {
+    set_text("");
 }
 
 void ScrollingDisplay::set_next_text(const char * text) {
