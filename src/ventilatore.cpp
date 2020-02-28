@@ -8,61 +8,26 @@
 #include "fancontrol.h"
 #include "led.h"
 #include "scrolling_display.h"
-#include "stopwatch.h"
-#include "wificontrol.h"
 #include "sensor.h"
+#include "stopwatch.h"
+#include "userinterface.h"
+#include "wificontrol.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
 #define MEASUREMENT_INTERVAL 5000
 
-enum display_state_t {
-    DISPLAY_STATE_FIRST,
-    HUMIDITY_1 = DISPLAY_STATE_FIRST,
-    HUMIDITY_2,
-    TEMPERATURE_1,
-    TEMPERATURE_2,
-    PRESSURE_1,
-    PRESSURE_2,
-    DISPLAY_STATE_LAST
-} display_state = HUMIDITY_1;
-
 ESP8266WebServer server;
+
 Sensors sensors;
 ScrollingDisplay display{D6 /* clk */, D7 /* dio */, 300};
 Stopwatch stopwatch;
 BlinkingLed wifi_led(D4, 0, 91, true);
 OneButton button(D0, false);
 FanControl fan_control(RELAY, sensors);
+UserInterface ui(display, fan_control, sensors, button);
 
 WiFiControl wifi_control(HOSTNAME, wifi_led);
-
-void update_display() {
-    char buf[200];
-
-    switch (display_state) {
-        case HUMIDITY_1:
-            snprintf(buf, 200, "Hin %i PErc", int(sensors.inside().humidity));
-            break;
-        case HUMIDITY_2:
-            snprintf(buf, 200, "Hout  %i PErc", int(sensors.outside().humidity));
-            break;
-        case PRESSURE_1:
-            snprintf(buf, 200, "Pin %i hPA", int(sensors.inside().pressure));
-            break;
-        case PRESSURE_2:
-            snprintf(buf, 200, "Pout  %i hPA", int(sensors.outside().pressure));
-            break;
-        case TEMPERATURE_1:
-            snprintf(buf, 200, "tin %i *C", int(sensors.inside().temperature));
-            break;
-        case TEMPERATURE_2:
-            snprintf(buf, 200, "tout  %i *C", int(sensors.outside().temperature));
-            break;
-    }
-
-    display.set_next_text(buf);
-}
 
 void reset() {
     printf("Reset...\n");
@@ -91,15 +56,6 @@ void setup() {
     }
 
     fan_control.init();
-
-    button.attachClick([] {
-        display_state = static_cast<display_state_t>(static_cast<int>(display_state) + 1);
-        if (display_state == DISPLAY_STATE_LAST)
-            display_state = DISPLAY_STATE_FIRST;
-        update_display();
-        });
-
-    button.attachLongPressStart([]{ fan_control.cycle_modes(); });
 
     server.on("/version", []{
             server.send(200, "text/plain", __DATE__ " " __TIME__);
@@ -159,21 +115,19 @@ void setup() {
             });
 
     server.begin();
-
-    display.set_next_text("bLUE dAbAdEE");
 }
 
 void loop() {
     server.handleClient();
 
+
     if (stopwatch.elapsedMillis() >= MEASUREMENT_INTERVAL) {
         // it's time to read the data again
         sensors.update();
-        update_display();
         fan_control.tick();
         stopwatch.reset();
     }
 
-    button.tick();
+    ui.tick();
     wifi_control.tick();
 }

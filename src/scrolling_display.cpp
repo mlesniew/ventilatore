@@ -37,10 +37,13 @@ void ScrollingDisplay::set_speed(unsigned long interval) {
 
 void ScrollingDisplay::set_text(const char * text, bool immediate) {
     strncpy(current_buffer(), text, SCROLLING_DISPLAY_BUFFER_SIZE);
-    if (immediate)
-        scroll_position = 0;
-    else
-        scroll_position = -4;
+    // note that the display will be update with the next tick() call, which will increment the scroll_position
+    // before displaying anything
+    if (immediate) {
+        scroll_position = -1;
+    } else {
+        scroll_position = -5;
+    }
     buffer_swap_pending = false;
 }
 
