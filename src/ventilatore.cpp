@@ -12,6 +12,8 @@
 #include "stopwatch.h"
 #include "userinterface.h"
 #include "wificontrol.h"
+#include "util.h"
+#include "resetbutton.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
@@ -26,19 +28,14 @@ BlinkingLed wifi_led(D4, 0, 91, true);
 OneButton button(D0, false);
 FanControl fan_control(RELAY, sensors);
 UserInterface ui(display, fan_control, sensors, button);
+ResetButton reset_button(D0);
 
 WiFiControl wifi_control(HOSTNAME, wifi_led);
 
-void reset() {
-    printf("Reset...\n");
-    while (1) {
-        ESP.restart();
-        delay(1000);
-    }
-}
-
 void setup() {
     Serial.begin(9600);
+
+    reset_button.init();
 
     display.init();
     display.clear();
