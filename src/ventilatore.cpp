@@ -34,6 +34,13 @@ WiFiControl wifi_control(HOSTNAME, wifi_led);
 
 void setup() {
     Serial.begin(9600);
+    printf("\n\n");
+    printf("                 _   _ _       _\n");
+    printf("__   _____ _ __ | |_(_) | __ _| |_ ___  _ __ ___\n");
+    printf("\\ \\ / / _ \\ '_ \\| __| | |/ _` | __/ _ \\| '__/ _ \\\n");
+    printf(" \\ V /  __/ | | | |_| | | (_| | || (_) | | |  __/\n");
+    printf("  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n");
+    printf("\n\n");
 
     reset_button.init();
 
