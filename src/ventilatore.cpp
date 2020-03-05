@@ -38,14 +38,19 @@ void reset() {
 }
 
 void setup() {
+    Serial.begin(9600);
+
     display.init();
     display.clear();
-    Serial.begin(9600);
+    display.set_text("init");
 
     SPIFFS.begin();
 
     // enter WiFi setup mode only if button is pressed during start up
-    bool wifi_setup = digitalRead(D0) == HIGH;
+    const bool wifi_setup = digitalRead(D0) == HIGH;
+    if (wifi_setup) {
+        display.set_text("nEt SEtUP");
+    }
     wifi_control.init(wifi_setup);
 
     if (!sensors.init()) {
@@ -119,7 +124,6 @@ void setup() {
 
 void loop() {
     server.handleClient();
-
 
     if (stopwatch.elapsedMillis() >= MEASUREMENT_INTERVAL) {
         // it's time to read the data again
