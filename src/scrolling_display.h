@@ -13,7 +13,6 @@ public:
 
     void init();
     void tick();
-    void set_speed(unsigned long interval);
     void set_text(const char * text, bool immediate = true);
     void set_next_text(const char * text);
     void clear();
@@ -21,6 +20,7 @@ public:
 protected:
     char * current_buffer() { return buffer[buffer_index]; }
     char * other_buffer() { return buffer[1 - buffer_index]; }
+    void setup_scrolling(bool immediate);
 
     TM1637Display display;
     Ticker ticker;
@@ -28,5 +28,7 @@ protected:
     int scroll_position;
     unsigned int buffer_index;
     bool buffer_swap_pending;
+    unsigned long interval;
+    bool scrolling;
 };
 #endif

@@ -120,7 +120,7 @@ void UserInterface::tick() {
                 // go back to simple mode
                 printf("No user activity, switching display back to simple humidity display mode.\n");
                 mode = HUMIDITY_INSIDE_SIMPLE;
-                update_display(true);
+                update_display(false);
             } else if (last_display_update.elapsed() >= 5) {
                 // update displayed measurements
                 update_display(false);
