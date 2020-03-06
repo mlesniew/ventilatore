@@ -8,7 +8,11 @@ ScrollingDisplay::ScrollingDisplay(unsigned int clk, unsigned int dio, unsigned 
 
 void ScrollingDisplay::init() {
     display.clear();
-    display.setBrightness(7);
+    set_brightness(7, true);
+}
+
+void ScrollingDisplay::set_brightness(unsigned char brightness, bool on) {
+    display.setBrightness(brightness & 0x7, on);
 }
 
 void ScrollingDisplay::setup_scrolling(bool immediate) {

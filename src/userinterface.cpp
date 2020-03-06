@@ -5,6 +5,9 @@
 #include "sensor.h"
 #include "userinterface.h"
 
+#define DISPLAY_DIM_TIMEOUT  (2 * 60)
+#define DISPLAY_OFF_TIMEOUT  (5 * 60)
+
 void UserInterface::on_click() {
     switch (mode) {
         case FAN_MODE:
@@ -43,7 +46,9 @@ void UserInterface::on_long_click() {
 
 UserInterface::UserInterface(ScrollingDisplay & display, FanControl & fan, const Sensors & sensors, OneButton & button)
     : display(display), fan(fan), sensors(sensors), button(button), last_fan_mode(fan.get_mode()),
-    mode(HUMIDITY_INSIDE_SIMPLE), last_mode(HUMIDITY_INSIDE_SIMPLE) {
+    mode(HUMIDITY_INSIDE_SIMPLE), last_mode(HUMIDITY_INSIDE_SIMPLE), brightness(7), display_on(true) {
+
+    display.set_brightness(brightness, display_on);
 
     button.attachClick(on_click, (void *)(this));
     button.attachLongPressStart(on_long_click, (void *)(this));
@@ -88,6 +93,39 @@ void UserInterface::update_display(bool immediate) {
 }
 
 void UserInterface::tick() {
+    if (last_brightness_update.elapsed() > 0.35) {
+        last_brightness_update.reset();
+
+        const auto inactivity = last_button_press.elapsed();
+        const bool dim_display = (inactivity > DISPLAY_DIM_TIMEOUT) && (mode != FAN_MODE);
+        const bool turn_off_display = ((brightness == 0) && dim_display && (inactivity > DISPLAY_OFF_TIMEOUT));
+
+        if (turn_off_display && display_on)
+        {
+            printf("Turning off display...\n");
+            brightness = 0;
+            display_on = false;
+            display.set_brightness(0, false);
+        } else if (!turn_off_display) {
+            display_on = true;
+            if (dim_display && (brightness > 0)) {
+                --brightness;
+                printf("Decreasing display brightness to level %i...\n", brightness);
+                display.set_brightness(brightness);
+            } else if (!dim_display && (brightness < 7)) {
+                if (inactivity < 1) {
+                    // the user is active, light up the display immediately
+                    brightness = 7;
+                } else {
+                    // no user activity, light up slowly
+                    ++brightness;
+                }
+                printf("Increasing display brightness to level %i...\n", brightness);
+                display.set_brightness(brightness);
+            }
+        }
+    }
+
     button.tick();
 
     if (last_fan_mode != fan.get_mode()) {
@@ -116,7 +154,7 @@ void UserInterface::tick() {
             }
             break;
         default:
-            if (last_button_press.elapsed() >= 30) {
+            if (last_button_press.elapsed() >= 60) {
                 // go back to simple mode
                 printf("No user activity, switching display back to simple humidity display mode.\n");
                 mode = HUMIDITY_INSIDE_SIMPLE;

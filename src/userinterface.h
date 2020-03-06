@@ -45,8 +45,11 @@ protected:
     OneButton & button;
     FanControl::FanMode last_fan_mode;
 
-    Stopwatch last_button_press, last_display_update;
+    Stopwatch last_button_press, last_display_update, last_brightness_update;
     Mode mode, last_mode;
+
+    unsigned char brightness;
+    bool display_on;
 };
 
 #endif

@@ -15,6 +15,7 @@ public:
     void tick();
     void set_text(const char * text, bool immediate = true);
     void set_next_text(const char * text);
+    void set_brightness(unsigned char brightness, bool on = true);
     void clear();
 
 protected:
