@@ -1,29 +1,227 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet"
+              href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+              integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+              crossorigin="anonymous">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+        <script src="https://kit.fontawesome.com/0e4251d551.js"
+                crossorigin="anonymous"></script>
 
-    <title>Hello, world!</title>
-  </head>
-  <body>
-    <div class="container">
-        <h1>Hello, world!</h1>
-    </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                crossorigin="anonymous"></script>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-  </body>
+        <title>Ventilatore</title>
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+            <a class="navbar-brand" href="#"><i class="fas fa-fan fa-spin"></i> Ventilatore</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Status</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Configuration</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container">
+
+            <div class="row">
+
+                <div class="col-12 mb-4">
+                    <div class="card shadow text-center">
+                        <div class="card-header">
+                          Fan status
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-subtitle text-muted"></h6>
+                            <p class="card-text display-1"><i id="fan-icon" class="fas fa-fan"></i></p>
+                            <button id="fan-start" class="btn btn-primary btn-sm" type="button">Start</button>
+                            <button id="fan-stop" class="btn btn-primary btn-sm" type="button">Stop</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card-deck">
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-thermometer-half"></i> Temperature inside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-4 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-inside-loading"></i>
+                            <span class="measurements-inside-values">
+                                <span id="temperature-inside"></span>
+                                <sup><small>°C</small></sup>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-100 d-none d-sm-block d-md-none"></div>
+
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-tint"></i> Humidity inside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-3 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-inside-loading"></i>
+                            <span class="measurements-inside-values">
+                                <span id="humidity-inside"></span>
+                                <small>%</small>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-100 d-none d-sm-block d-md-none"></div>
+
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-tachometer-alt"></i> Pressure inside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-4 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-inside-loading"></i>
+                            <span class="measurements-inside-values">
+                                <span id="pressure-inside"></span>
+                                <small> hPa</small>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card-deck">
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-thermometer-half"></i> Temperature outside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-4 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-outside-loading"></i>
+                            <span class="measurements-outside-values">
+                                <span id="temperature-outside"></span>
+                                <sup><small>°C</small></sup>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-100 d-none d-sm-block d-md-none"></div>
+
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-tint"></i> Humidity outside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-3 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-outside-loading"></i>
+                            <span class="measurements-outside-values">
+                                <span id="humidity-outside"></span>
+                                <small>%</small>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-100 d-none d-sm-block d-md-none"></div>
+
+                <div class="card shadow text-center mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-tachometer-alt"></i> Pressure outside
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p class="card-text display-4 mt-auto mb-auto">
+                            <i class="text-muted fas fa-sync fa-spin mt-auto mb-auto measurements-outside-loading"></i>
+                            <span class="measurements-outside-values">
+                                <span id="pressure-outside"></span>
+                                <small> hPa</small>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <script>
+            function set_fan(running) {
+                if (running) {
+                    $("#fan-icon").addClass("fa-spin")
+                    $("#fan-start").hide();
+                    $("#fan-stop").show();
+                } else {
+                    $("#fan-icon").removeClass("fa-spin")
+                    $("#fan-start").show();
+                    $("#fan-stop").hide();
+                }
+            }
+
+            $(document).ready(function(){
+                $(".measurements-inside-values").hide();
+                $(".measurements-outside-values").hide();
+
+                $("#fan-start").click(function(){
+                    set_fan(true);
+                    $.post("on");
+                });
+
+                $("#fan-stop").click(function(){
+                    set_fan(false);
+                    $.post("off");
+                });
+
+                setInterval(function(){
+                    $.getJSON("status", function(data){
+                        set_fan(data["fan_running"]);
+
+                        if (data["inside"]) {
+                            $("#humidity-inside").text(Math.round(data["inside"]["humidity"]));
+                            $("#temperature-inside").text(Math.round(data["inside"]["temperature"]));
+                            $("#pressure-inside").text(Math.round(data["inside"]["pressure"]));
+                            $(".measurements-inside-loading").hide();
+                            $(".measurements-inside-values").show();
+                        } else {
+                            $(".measurements-inside-loading").show();
+                            $(".measurements-inside-values").hide();
+                        }
+
+                        if (data["outside"]) {
+                            $("#humidity-outside").text(Math.round(data["outside"]["humidity"]));
+                            $("#temperature-outside").text(Math.round(data["outside"]["temperature"]));
+                            $("#pressure-outside").text(Math.round(data["outside"]["pressure"]));
+                            $(".measurements-outside-loading").hide();
+                            $(".measurements-outside-values").show();
+                        } else {
+                            $(".measurements-outside-loading").show();
+                            $(".measurements-outside-values").hide();
+                        }
+
+                    });
+                }, 1500);
+            });
+        </script>
+
+    </body>
 </html>

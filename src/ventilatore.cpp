@@ -74,8 +74,6 @@ void setup() {
             server.send(200, "text/plain", String(millis() / 1000));
             });
 
-    server.serveStatic("/", SPIFFS, "/index.html");
-
     server.on("/on", []{
             fan_control.force_on();
             server.send(200, "text/plain", "OK");
@@ -122,6 +120,9 @@ void setup() {
                     sensors.inside().humidity, sensors.outside().humidity);
             server.send(200, "text/plain", buf);
             });
+
+    // this must go last
+    server.serveStatic("/", SPIFFS, "/");
 
     server.begin();
 }
