@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet"
+              href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+              integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+              crossorigin="anonymous">
+
+        <script src="https://kit.fontawesome.com/0e4251d551.js"
+                crossorigin="anonymous"></script>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                crossorigin="anonymous"></script>
+
+        <title>Ventilatore</title>
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+            <a class="navbar-brand" href="#"><i class="fas fa-fan fa-spin"></i> Ventilatore</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Status</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Configuration</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container">
+
+            <div class="row">
+                <h1 class="display-3">Configuration</h1>
+            </div>
+            <div>
+                <form action="/config/save">
+                    <div class="form-group">
+                        <label for="auto-on-dh">Humidity difference at which the fan will be started automatically</label>
+                        <input type="number" required="true" min="1" max="99" class="form-control" id="auto-on-dh" name="autoOnDH">
+                    </div>
+                    <div class="form-group">
+                        <label for="auto-off-dh">Humidity difference at which the fan will be stopped automatically</label>
+                        <input type="number" required="true" min="1" max="99" class="form-control" id="auto-off-dh" name="autoOffDH">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+
+        </div>
+
+        <script>
+            $(document).ready(function(){
+                $.getJSON("config/load", function(data){
+                    for (var key in data) {
+                        $('input[name="' + key + '"]').val(data[key]);
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

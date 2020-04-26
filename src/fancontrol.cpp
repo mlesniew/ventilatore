@@ -2,9 +2,10 @@
 
 #include "fancontrol.h"
 #include "sensor.h"
+#include "settings.h"
 
 FanControl::FanControl(int relay_pin, const Sensors & sensors):
-    sensors(sensors), relay_pin(relay_pin), threshold_off(10), threshold_on(15), mode(FORCE_OFF) {}
+    sensors(sensors), relay_pin(relay_pin), mode(FORCE_OFF) {}
 
 void FanControl::init() {
     pinMode(relay_pin, OUTPUT);
@@ -32,7 +33,7 @@ void FanControl::automatic() {
     }
     mode_time.reset();
     const auto deltaP = sensors.inside().humidity - sensors.outside().humidity;
-    const auto avg_threshold = (threshold_on + threshold_off) / 2;
+    const auto avg_threshold = (settings::settings.data.auto_on_dh + settings::settings.data.auto_off_dh) / 2;
     if (deltaP >= avg_threshold) {
         printf("High humidity difference, starting fan...\n");
         mode = AUTO_ON;
@@ -54,7 +55,7 @@ void FanControl::tick() {
             }
             break;
         case AUTO_OFF:
-            if (deltaP >= threshold_on) {
+            if (deltaP >= settings::settings.data.auto_on_dh) {
                 printf("Humidity difference raised, starting fan.\n");
                 mode_time.reset();
                 mode = AUTO_ON;
@@ -62,7 +63,7 @@ void FanControl::tick() {
             }
             break;
         case AUTO_ON:
-            if (deltaP <= threshold_off) {
+            if (deltaP <= settings::settings.data.auto_off_dh) {
                 printf("Humidity difference dropped, stopping fan.\n");
                 mode_time.reset();
                 mode = AUTO_OFF;

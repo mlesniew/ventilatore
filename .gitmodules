@@ -10,3 +10,6 @@
 [submodule "lib/OneButton"]
 	path = lib/OneButton
 	url = https://github.com/mathertel/OneButton.git
+[submodule "lib/CRC"]
+	path = lib/CRC
+	url = git@github.com:mlesniew/CRC.git

@@ -7,13 +7,14 @@
 
 #include "fancontrol.h"
 #include "led.h"
+#include "resetbutton.h"
 #include "scrolling_display.h"
 #include "sensor.h"
+#include "settings.h"
 #include "stopwatch.h"
 #include "userinterface.h"
-#include "wificontrol.h"
 #include "util.h"
-#include "resetbutton.h"
+#include "wificontrol.h"
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
@@ -47,6 +48,8 @@ void setup() {
     display.init();
     display.clear();
     display.set_text("init");
+
+    settings::load();
 
     SPIFFS.begin();
 
@@ -120,6 +123,31 @@ void setup() {
                     sensors.inside().humidity, sensors.outside().humidity);
             server.send(200, "text/plain", buf);
             });
+
+    server.on("/config/load", []{
+            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i}";
+            char buf[100];
+            snprintf(buf, 100, pattern, settings::settings.data.auto_on_dh, settings::settings.data.auto_off_dh);
+            server.send(200, "application/json", buf);
+            });
+
+    server.on("/config/save", []{
+            auto auto_on_dh = server.arg("autoOnDH");
+            auto auto_off_dh = server.arg("autoOffDH");
+
+            settings::settings.data.auto_on_dh = auto_on_dh.toInt();
+            settings::settings.data.auto_off_dh = auto_off_dh.toInt();
+
+            settings::sanitize();
+            settings::print();
+            settings::save();
+
+            server.sendHeader("Location", "/config", true);
+            server.send(302, "text/plain", "Config saved.");
+            });
+
+    server.serveStatic("/", SPIFFS, "/index.html");
+    server.serveStatic("/config", SPIFFS, "/config.html");
 
     // this must go last
     server.serveStatic("/", SPIFFS, "/");

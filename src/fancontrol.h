@@ -36,7 +36,6 @@ class FanControl {
         FanMode mode;
         const Sensors & sensors;
         const int relay_pin;
-        float threshold_off, threshold_on;
 
         Stopwatch mode_time;
 };
