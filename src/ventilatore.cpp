@@ -18,7 +18,7 @@
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
-#define MEASUREMENT_INTERVAL 5000
+#define MEASUREMENT_INTERVAL 15000
 
 ESP8266WebServer server;
 
@@ -75,6 +75,11 @@ void setup() {
 
     server.on("/uptime", []{
             server.send(200, "text/plain", String(millis() / 1000));
+            });
+
+    server.on("/reset", []{
+            server.send(200, "text/plain", "OK");
+            reset();
             });
 
     server.on("/on", []{
