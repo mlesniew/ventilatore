@@ -119,13 +119,19 @@ void setup() {
                 "# HELP humidity Relative air humidity in percent\n"
                 "# TYPE humidity gauge\n"
                 "humidity{sensor=\"inside\"} %.1f\n"
-                "humidity{sensor=\"outside\"} %.1f\n";
-            char buf[800]; // pattern lenght is around 550
+                "humidity{sensor=\"outside\"} %.1f\n"
+                "# HELP humidity_difference_threshold Humidity difference at which the fan is switched\n"
+                "# TYPE humidity_difference_threshold gauge\n"
+                "humidity_difference_threshold{threshold=\"on\"} %.1f\n"
+                "humidity_difference_threshold{threshold=\"off\"} %.1f\n";
+            char buf[800]; // pattern length is around 600
             snprintf(buf, 800, pattern,
                     fan_control.fan_running() ? 1:0,
                     sensors.inside().temperature, sensors.outside().temperature,
                     sensors.inside().pressure, sensors.outside().pressure,
-                    sensors.inside().humidity, sensors.outside().humidity);
+                    sensors.inside().humidity, sensors.outside().humidity,
+                    double(settings::settings.data.auto_on_dh),
+                    double(settings::settings.data.auto_off_dh));
             server.send(200, "text/plain", buf);
             });
 
