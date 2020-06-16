@@ -6,6 +6,7 @@
 #define DEFAULT_AUTO_ON_DH 15
 #define DEFAULT_AUTO_OFF_DH 20
 #define DEFAULT_CHECK_INTERVAL 30
+#define DEFAULT_ALTITUDE 0
 
 namespace settings {
 
@@ -30,6 +31,9 @@ void sanitize() {
 
     if (settings.data.sensor_check_interval >= 10 * 60)
         settings.data.sensor_check_interval = 10 * 60;
+
+    if (settings.data.altitude >= 9000)
+        settings.data.altitude = 9000;
 }
 
 void load() {
@@ -42,6 +46,7 @@ void load() {
         settings.data.auto_on_dh = DEFAULT_AUTO_ON_DH;
         settings.data.auto_off_dh = DEFAULT_AUTO_OFF_DH;
         settings.data.sensor_check_interval = DEFAULT_CHECK_INTERVAL;
+        settings.data.altitude = DEFAULT_ALTITUDE;
     } else {
         printf("Loaded settings from flash, CRC correct.\n");
     }
@@ -61,6 +66,7 @@ void print() {
     printf("  auto on humidity difference:  %i\n", settings.data.auto_on_dh);
     printf("  auto off humidity difference: %i\n", settings.data.auto_off_dh);
     printf("  sensor check interval:        %i\n", settings.data.sensor_check_interval);
+    printf("  altitude:                     %i\n", settings.data.altitude);
 }
 
 }

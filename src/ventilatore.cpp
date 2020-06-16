@@ -2,7 +2,7 @@
 #include <FS.h>
 // This include is not really needed, but PlatformIO fails to compile without it
 #include <SPI.h>
-
+#include <EnvironmentCalculations.h>
 #include <OneButton.h>
 
 #include "fancontrol.h"
@@ -31,6 +31,13 @@ UserInterface ui(display, fan_control, sensors, button);
 ResetButton reset_button(D0);
 
 WiFiControl wifi_control(HOSTNAME, wifi_led);
+
+float eslp(float pressure, float temperature) {
+    return EnvironmentCalculations::EquivalentSeaLevelPressure(
+            float(settings::settings.data.altitude),
+            temperature,
+            pressure);
+}
 
 void setup() {
     Serial.begin(9600);
@@ -97,8 +104,12 @@ void setup() {
             char buf[200];
             snprintf(buf, 200, pattern,
                     fan_control.fan_running() ? "true" : "false",
-                    sensors.inside().temperature, sensors.inside().pressure, sensors.inside().humidity,
-                    sensors.outside().temperature, sensors.outside().pressure, sensors.outside().humidity);
+                    sensors.inside().temperature,
+                    eslp(sensors.inside().pressure, sensors.inside().temperature),
+                    sensors.inside().humidity,
+                    sensors.outside().temperature,
+                    eslp(sensors.outside().pressure, sensors.outside().temperature),
+                    sensors.outside().humidity);
             server.send(200, "application/json", buf);
             });
 
@@ -115,6 +126,10 @@ void setup() {
                 "# TYPE pressure gauge\n"
                 "pressure{sensor=\"inside\"} %.1f\n"
                 "pressure{sensor=\"outside\"} %.1f\n"
+                "# HELP equivalent_sea_level_pressure Equivalent sea level pressure in hectopascal\n"
+                "# TYPE equivalent_sea_level_pressure gauge\n"
+                "equivalent_sea_level_pressure{sensor=\"inside\"} %.1f\n"
+                "equivalent_sea_level_pressure{sensor=\"outside\"} %.1f\n"
                 "# HELP humidity Relative air humidity in percent\n"
                 "# TYPE humidity gauge\n"
                 "humidity{sensor=\"inside\"} %.1f\n"
@@ -123,11 +138,13 @@ void setup() {
                 "# TYPE humidity_difference_threshold gauge\n"
                 "humidity_difference_threshold{threshold=\"on\"} %.1f\n"
                 "humidity_difference_threshold{threshold=\"off\"} %.1f\n";
-            char buf[800]; // pattern length is around 600
-            snprintf(buf, 800, pattern,
+            char buf[1000]; // pattern length is around 600
+            snprintf(buf, 1000, pattern,
                     fan_control.fan_running() ? 1:0,
                     sensors.inside().temperature, sensors.outside().temperature,
                     sensors.inside().pressure, sensors.outside().pressure,
+                    eslp(sensors.inside().pressure, sensors.inside().temperature),
+                    eslp(sensors.outside().pressure, sensors.outside().temperature),
                     sensors.inside().humidity, sensors.outside().humidity,
                     double(settings::settings.data.auto_on_dh),
                     double(settings::settings.data.auto_off_dh));
@@ -135,11 +152,12 @@ void setup() {
             });
 
     server.on("/config/load", []{
-            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i}";
-            char buf[100];
-            snprintf(buf, 100, pattern,
+            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i,\"altitude\":%i}";
+            char buf[150];
+            snprintf(buf, 150, pattern,
                     settings::settings.data.auto_on_dh, settings::settings.data.auto_off_dh,
-                    settings::settings.data.sensor_check_interval);
+                    settings::settings.data.sensor_check_interval,
+                    settings::settings.data.altitude);
             server.send(200, "application/json", buf);
             });
 
@@ -147,10 +165,12 @@ void setup() {
             auto auto_on_dh = server.arg("autoOnDH");
             auto auto_off_dh = server.arg("autoOffDH");
             auto interval = server.arg("checkInterval");
+            auto altitude = server.arg("altitude");
 
             settings::settings.data.auto_on_dh = auto_on_dh.toInt();
             settings::settings.data.auto_off_dh = auto_off_dh.toInt();
             settings::settings.data.sensor_check_interval = interval.toInt();
+            settings::settings.data.altitude = altitude.toInt();
 
             settings::sanitize();
             settings::print();
