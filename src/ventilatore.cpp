@@ -18,7 +18,6 @@
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
-#define MEASUREMENT_INTERVAL 15000
 
 ESP8266WebServer server;
 
@@ -136,18 +135,22 @@ void setup() {
             });
 
     server.on("/config/load", []{
-            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i}";
+            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i}";
             char buf[100];
-            snprintf(buf, 100, pattern, settings::settings.data.auto_on_dh, settings::settings.data.auto_off_dh);
+            snprintf(buf, 100, pattern,
+                    settings::settings.data.auto_on_dh, settings::settings.data.auto_off_dh,
+                    settings::settings.data.sensor_check_interval);
             server.send(200, "application/json", buf);
             });
 
     server.on("/config/save", []{
             auto auto_on_dh = server.arg("autoOnDH");
             auto auto_off_dh = server.arg("autoOffDH");
+            auto interval = server.arg("checkInterval");
 
             settings::settings.data.auto_on_dh = auto_on_dh.toInt();
             settings::settings.data.auto_off_dh = auto_off_dh.toInt();
+            settings::settings.data.sensor_check_interval = interval.toInt();
 
             settings::sanitize();
             settings::print();
@@ -169,7 +172,7 @@ void setup() {
 void loop() {
     server.handleClient();
 
-    if (stopwatch.elapsedMillis() >= MEASUREMENT_INTERVAL) {
+    if (stopwatch.elapsedMillis() / 1000 >= settings::settings.data.sensor_check_interval) {
         // it's time to read the data again
         sensors.update();
         fan_control.tick();

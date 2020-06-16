@@ -58,6 +58,10 @@
                         <label for="auto-off-dh">Humidity difference at which the fan will be stopped automatically</label>
                         <input type="number" required="true" min="1" max="99" class="form-control" id="auto-off-dh" name="autoOffDH">
                     </div>
+                    <div class="form-group">
+                        <label for="sensor-interval">Humidity check interval in seconds</label>
+                        <input type="number" required="true" min="5" max="600" class="form-control" id="sensor-interval" name="checkInterval">
+                    </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>

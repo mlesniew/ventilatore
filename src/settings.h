@@ -9,6 +9,7 @@ namespace settings {
         struct {
             unsigned char auto_on_dh;
             unsigned char auto_off_dh;
+            unsigned int sensor_check_interval;
         } data;
         uint16_t checksum;
     } __attribute((packed));

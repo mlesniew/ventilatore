@@ -5,6 +5,7 @@
 
 #define DEFAULT_AUTO_ON_DH 15
 #define DEFAULT_AUTO_OFF_DH 20
+#define DEFAULT_CHECK_INTERVAL 30
 
 namespace settings {
 
@@ -23,6 +24,12 @@ void sanitize() {
         settings.data.auto_off_dh = settings.data.auto_on_dh;
         settings.data.auto_on_dh = tmp;
     }
+
+    if (settings.data.sensor_check_interval < 5)
+        settings.data.sensor_check_interval = 5;
+
+    if (settings.data.sensor_check_interval >= 10 * 60)
+        settings.data.sensor_check_interval = 10 * 60;
 }
 
 void load() {
@@ -34,6 +41,7 @@ void load() {
         printf("Invalid CRC of settings in flash, using defaults.\n");
         settings.data.auto_on_dh = DEFAULT_AUTO_ON_DH;
         settings.data.auto_off_dh = DEFAULT_AUTO_OFF_DH;
+        settings.data.sensor_check_interval = DEFAULT_CHECK_INTERVAL;
     } else {
         printf("Loaded settings from flash, CRC correct.\n");
     }
@@ -52,6 +60,7 @@ void print() {
     printf("Settings:\n");
     printf("  auto on humidity difference:  %i\n", settings.data.auto_on_dh);
     printf("  auto off humidity difference: %i\n", settings.data.auto_off_dh);
+    printf("  sensor check interval:        %i\n", settings.data.sensor_check_interval);
 }
 
 }
