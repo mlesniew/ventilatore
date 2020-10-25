@@ -18,10 +18,11 @@
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
+#define SENSOR_RESET D5
 
 ESP8266WebServer server;
 
-Sensors sensors;
+Sensors sensors(SENSOR_RESET);
 ScrollingDisplay display{D6 /* clk */, D7 /* dio */, 300};
 Stopwatch stopwatch;
 BlinkingLed wifi_led(D4, 0, 91, true);
@@ -194,7 +195,14 @@ void loop() {
 
     if (stopwatch.elapsedMillis() / 1000 >= settings::settings.data.sensor_check_interval) {
         // it's time to read the data again
-        sensors.update();
+        if (!sensors.update()) {
+            // Sensor read failed, reset to try to reconnect.  Reconnecting should also be
+            // possible by just switching the SENSOR_RESET pin to low and to high again and
+            // reinitializing the sensors.  However, this is a rare situation, so it's ok to
+            // simply do a full reset.
+            printf("Error reading sensors.\n");
+            reset();
+        }
         fan_control.tick();
         stopwatch.reset();
     }

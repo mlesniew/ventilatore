@@ -5,13 +5,16 @@
 
 struct Measurements {
     float temperature, humidity, pressure;
+    bool valid() const {
+        return (humidity <= 100) && (humidity >= 0);
+    }
 };
 
 class Sensor {
     public:
         Sensor(unsigned int address);
-        int init();
-        void update();
+        bool init();
+        bool update();
         const Measurements & get_measurements() const { return measurements; }
 
     protected:
@@ -22,14 +25,15 @@ class Sensor {
 
 class Sensors {
 public:
-    Sensors();
-    int init();
-    void update();
+    Sensors(const int reset_pin);
+    bool init();
+    bool update();
 
     const Measurements & inside() const;
     const Measurements & outside() const;
 
 protected:
+    const int reset_pin;
     Sensor sensor_inside, sensor_outside;
 };
 
