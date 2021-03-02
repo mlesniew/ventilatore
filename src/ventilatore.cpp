@@ -5,16 +5,16 @@
 #include <EnvironmentCalculations.h>
 #include <OneButton.h>
 
-#include "fancontrol.h"
-#include "led.h"
 #include "resetbutton.h"
 #include "scrolling_display.h"
 #include "sensor.h"
 #include "settings.h"
-#include "stopwatch.h"
 #include "userinterface.h"
 #include "util.h"
-#include "wificontrol.h"
+
+#include <utils/stopwatch.h>
+#include <utils/led.h>
+#include <utils/wifi_control.h>
 
 #define HOSTNAME "ventilatore"
 #define RELAY D8
@@ -31,7 +31,7 @@ FanControl fan_control(RELAY, sensors);
 UserInterface ui(display, fan_control, sensors, button);
 ResetButton reset_button(D0);
 
-WiFiControl wifi_control(HOSTNAME, wifi_led);
+WiFiControl wifi_control(wifi_led);
 
 float eslp(float pressure, float temperature) {
     return EnvironmentCalculations::EquivalentSeaLevelPressure(
@@ -65,7 +65,8 @@ void setup() {
     if (wifi_setup) {
         display.set_text("nEt SEtUP");
     }
-    wifi_control.init(wifi_setup);
+    wifi_control.init(wifi_setup ? WiFiInitMode::setup : WiFiInitMode::saved,
+                      HOSTNAME);
 
     if (!sensors.init()) {
         printf("Failed to initialize sensors.\n");
@@ -193,7 +194,7 @@ void setup() {
 void loop() {
     server.handleClient();
 
-    if (stopwatch.elapsedMillis() / 1000 >= settings::settings.data.sensor_check_interval) {
+    if (stopwatch.elapsed_millis() / 1000 >= settings::settings.data.sensor_check_interval) {
         // it's time to read the data again
         if (!sensors.update()) {
             // Sensor read failed, reset to try to reconnect.  Reconnecting should also be

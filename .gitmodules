@@ -13,3 +13,6 @@
 [submodule "lib/CRC"]
 	path = lib/CRC
 	url = https://github.com/mlesniew/CRC.git
+[submodule "lib/arduino_utils"]
+	path = lib/arduino_utils
+	url = git@github.com:mlesniew/arduino_utils.git

@@ -1,7 +1,7 @@
 #ifndef FANCONTROL_H
 #define FANCONTROL_H
 
-#include "stopwatch.h"
+#include <utils/stopwatch.h>
 
 class Sensors;
 

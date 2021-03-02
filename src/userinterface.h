@@ -1,7 +1,8 @@
 #ifndef USERINTERFACE_H
 #define USERINTERFACE_H
 
-#include "stopwatch.h"
+#include <utils/stopwatch.h>
+
 #include "fancontrol.h"
 
 class FanControl;

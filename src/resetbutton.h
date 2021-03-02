@@ -1,6 +1,6 @@
 #include <Ticker.h>
 
-#include "stopwatch.h"
+#include <utils/stopwatch.h>
 
 class ResetButton {
 public:

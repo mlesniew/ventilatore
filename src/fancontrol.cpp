@@ -102,7 +102,7 @@ const char * FanControl::mode_str() const {
 }
 
 unsigned int FanControl::current_mode_millis() const {
-    return mode_time.elapsedMillis();
+    return mode_time.elapsed_millis();
 }
 
 void FanControl::update_relay() {
