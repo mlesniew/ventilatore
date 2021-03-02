@@ -5,7 +5,6 @@
 #include <EnvironmentCalculations.h>
 #include <OneButton.h>
 
-#include "resetbutton.h"
 #include "scrolling_display.h"
 #include "sensor.h"
 #include "settings.h"
@@ -13,6 +12,7 @@
 
 #include <utils/led.h>
 #include <utils/reset.h>
+#include <utils/reset_button.h>
 #include <utils/stopwatch.h>
 #include <utils/wifi_control.h>
 
@@ -29,7 +29,7 @@ BlinkingLed wifi_led(D4, 0, 91, true);
 OneButton button(D0, false);
 FanControl fan_control(RELAY, sensors);
 UserInterface ui(display, fan_control, sensors, button);
-ResetButton reset_button(D0);
+ResetButton reset_button(D0, HIGH, 20);
 
 WiFiControl wifi_control(wifi_led);
 
