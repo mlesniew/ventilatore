@@ -10,10 +10,10 @@
 #include "sensor.h"
 #include "settings.h"
 #include "userinterface.h"
-#include "util.h"
 
-#include <utils/stopwatch.h>
 #include <utils/led.h>
+#include <utils/reset.h>
+#include <utils/stopwatch.h>
 #include <utils/wifi_control.h>
 
 #define HOSTNAME "ventilatore"

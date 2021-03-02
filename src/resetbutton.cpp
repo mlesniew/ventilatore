@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
-#include "util.h"
+#include <utils/reset.h>
+
 #include "resetbutton.h"
 
 ResetButton::ResetButton(unsigned int pin, float timeout) : pin(pin), timeout(timeout) {
