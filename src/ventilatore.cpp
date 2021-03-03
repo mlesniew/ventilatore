@@ -1,5 +1,5 @@
 #include <ESP8266WebServer.h>
-#include <FS.h>
+#include <LittleFS.h>
 // This include is not really needed, but PlatformIO fails to compile without it
 #include <SPI.h>
 #include <EnvironmentCalculations.h>
@@ -58,7 +58,7 @@ void setup() {
 
     settings::load();
 
-    SPIFFS.begin();
+    LittleFS.begin();
 
     // enter WiFi setup mode only if button is pressed during start up
     const bool wifi_setup = digitalRead(D0) == HIGH;
@@ -182,11 +182,11 @@ void setup() {
             server.send(302, "text/plain", "Config saved.");
             });
 
-    server.serveStatic("/", SPIFFS, "/index.html");
-    server.serveStatic("/config", SPIFFS, "/config.html");
+    server.serveStatic("/", LittleFS, "/index.html");
+    server.serveStatic("/config", LittleFS, "/config.html");
 
     // this must go last
-    server.serveStatic("/", SPIFFS, "/");
+    server.serveStatic("/", LittleFS, "/");
 
     server.begin();
 }
