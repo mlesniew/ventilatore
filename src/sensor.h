@@ -12,13 +12,13 @@ struct Measurements {
 
 class Sensor {
     public:
-        Sensor(unsigned int address);
+        Sensor(BME280I2C::I2CAddr addr);
         bool init();
         bool update();
         const Measurements & get_measurements() const { return measurements; }
 
     protected:
-        const unsigned int address;
+        const BME280I2C::I2CAddr address;
         BME280I2C sensor;
         Measurements measurements;
 };
