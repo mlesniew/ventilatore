@@ -6,7 +6,7 @@
 #include "userinterface.h"
 
 #define DISPLAY_DIM_TIMEOUT  (2 * 60)
-#define DISPLAY_OFF_TIMEOUT  (5 * 60)
+// #define DISPLAY_OFF_TIMEOUT  (5 * 60)
 
 void UserInterface::on_click() {
     switch (mode) {
@@ -98,7 +98,11 @@ void UserInterface::tick() {
 
         const auto inactivity = last_button_press.elapsed();
         const bool dim_display = (inactivity > DISPLAY_DIM_TIMEOUT) && (mode != FAN_MODE);
+#ifdef DISPLAY_OFF_TIMEOUT
         const bool turn_off_display = ((brightness == 0) && dim_display && (inactivity > DISPLAY_OFF_TIMEOUT));
+#else
+        const bool turn_off_display = false;
+#endif
 
         if (turn_off_display && display_on)
         {
