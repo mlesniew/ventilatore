@@ -65,6 +65,7 @@ void setup() {
     if (wifi_setup) {
         display.set_text("nEt SEtUP");
     }
+
     wifi_control.init(wifi_setup ? WiFiInitMode::setup : WiFiInitMode::saved,
                       HOSTNAME);
 
