@@ -46,6 +46,7 @@ void FanControl::automatic() {
 
 void FanControl::tick() {
     const auto deltaP = sensors.inside().humidity - sensors.outside().humidity;
+    const auto deltaT = sensors.inside().temperature - sensors.outside().temperature;
     switch (mode) {
         case FORCE_ON:
         case FORCE_OFF:
@@ -57,6 +58,12 @@ void FanControl::tick() {
         case AUTO_OFF:
             if (deltaP >= settings::settings.data.auto_on_dh) {
                 printf("Humidity difference raised, starting fan.\n");
+                mode_time.reset();
+                mode = AUTO_ON;
+                update_relay();
+            } else if (sensors.inside().temperature + 0.1 < sensors.outside().temperature
+                       && mode_time.elapsed() >= 60 * 10) {
+                printf("Temperature inside lower than outside, starting fan.\n");
                 mode_time.reset();
                 mode = AUTO_ON;
                 update_relay();

@@ -194,7 +194,7 @@ void setup() {
 void loop() {
     server.handleClient();
 
-    if (stopwatch.elapsed_millis() / 1000 >= settings::settings.data.sensor_check_interval) {
+    if (stopwatch.elapsed() >= settings::settings.data.sensor_check_interval) {
         // it's time to read the data again
         if (!sensors.update()) {
             // Sensor read failed, reset to try to reconnect.  Reconnecting should also be
