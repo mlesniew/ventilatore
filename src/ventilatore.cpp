@@ -120,28 +120,28 @@ void setup() {
                 "# HELP fan_running Fan status\n"
                 "# TYPE fan_running gauge\n"
                 "fan_running %i\n"
-                "# HELP temperature Air temperature in degrees Celsius\n"
-                "# TYPE temperature gauge\n"
-                "temperature{sensor=\"inside\"} %.1f\n"
-                "temperature{sensor=\"outside\"} %.1f\n"
-                "# HELP pressure Air pressure in hectopascal\n"
-                "# TYPE pressure gauge\n"
-                "pressure{sensor=\"inside\"} %.1f\n"
-                "pressure{sensor=\"outside\"} %.1f\n"
+                "# HELP air_temperature Air temperature in degrees Celsius\n"
+                "# TYPE air_temperature gauge\n"
+                "air_temperature{sensor=\"inside\"} %.1f\n"
+                "air_temperature{sensor=\"outside\"} %.1f\n"
+                "# HELP atmospheric_pressure Atmospheric pressure in hectopascal\n"
+                "# TYPE atmospheric_pressure gauge\n"
+                "atmospheric_pressure{sensor=\"inside\"} %.1f\n"
+                "atmospheric_pressure{sensor=\"outside\"} %.1f\n"
                 "# HELP equivalent_sea_level_pressure Equivalent sea level pressure in hectopascal\n"
                 "# TYPE equivalent_sea_level_pressure gauge\n"
                 "equivalent_sea_level_pressure{sensor=\"inside\"} %.1f\n"
                 "equivalent_sea_level_pressure{sensor=\"outside\"} %.1f\n"
                 "# HELP humidity Relative air humidity in percent\n"
                 "# TYPE humidity gauge\n"
-                "humidity{sensor=\"inside\"} %.1f\n"
-                "humidity{sensor=\"outside\"} %.1f\n"
+                "air_humidity{sensor=\"inside\"} %.1f\n"
+                "air_humidity{sensor=\"outside\"} %.1f\n"
                 "# HELP humidity_difference_threshold Humidity difference at which the fan is switched\n"
                 "# TYPE humidity_difference_threshold gauge\n"
                 "humidity_difference_threshold{threshold=\"on\"} %.1f\n"
                 "humidity_difference_threshold{threshold=\"off\"} %.1f\n";
-            char buf[1000]; // pattern length is around 600
-            snprintf(buf, 1000, pattern,
+            char buf[1200]; // pattern length is around 600
+            snprintf(buf, 1200, pattern,
                     fan_control.fan_running() ? 1:0,
                     sensors.inside().temperature, sensors.outside().temperature,
                     sensors.inside().pressure, sensors.outside().pressure,
