@@ -125,14 +125,10 @@ void setup() {
                 "# TYPE air_temperature gauge\n"
                 "air_temperature{name=\"%s\", sensor=\"inside\"} %.1f\n"
                 "air_temperature{name=\"%s\", sensor=\"outside\"} %.1f\n"
-                "# HELP atmospheric_pressure Atmospheric pressure in hectopascal\n"
+                "# HELP atmospheric_pressure Atmospheric pressure (equivalent sea level) in hectopascal\n"
                 "# TYPE atmospheric_pressure gauge\n"
                 "atmospheric_pressure{name=\"%s\", sensor=\"inside\"} %.1f\n"
                 "atmospheric_pressure{name=\"%s\", sensor=\"outside\"} %.1f\n"
-                "# HELP equivalent_sea_level_pressure Equivalent sea level pressure in hectopascal\n"
-                "# TYPE equivalent_sea_level_pressure gauge\n"
-                "equivalent_sea_level_pressure{name=\"%s\", sensor=\"inside\"} %.1f\n"
-                "equivalent_sea_level_pressure{name=\"%s\", sensor=\"outside\"} %.1f\n"
                 "# HELP humidity Relative air humidity in percent\n"
                 "# TYPE humidity gauge\n"
                 "air_humidity{name=\"%s\", sensor=\"inside\"} %.1f\n"
@@ -150,8 +146,6 @@ void setup() {
                     fan_control.fan_running() ? 1:0,
                     inside_sensor_name, sensors.inside().temperature,
                     outside_sensor_name, sensors.outside().temperature,
-                    inside_sensor_name, sensors.inside().pressure,
-                    outside_sensor_name, sensors.outside().pressure,
                     inside_sensor_name, eslp(sensors.inside().pressure, sensors.inside().temperature),
                     outside_sensor_name, eslp(sensors.outside().pressure, sensors.outside().temperature),
                     inside_sensor_name, sensors.inside().humidity,
