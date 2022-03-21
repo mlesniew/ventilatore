@@ -1,40 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "7.2.0"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -44,21 +8,26 @@
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
         "type": "dashboard"
       }
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
-      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "max": 40,
           "min": 0,
@@ -106,25 +75,26 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "targets": [
         {
-          "expr": "temperature{sensor=\"inside\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_temperature{sensor=\"inside\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Temperature",
       "type": "gauge"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "displayName": "",
           "mappings": [],
           "max": 100,
@@ -165,25 +135,26 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "targets": [
         {
-          "expr": "humidity{sensor=\"inside\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_humidity{sensor=\"inside\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Humidity",
       "type": "gauge"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "mappings": [],
           "max": 1100,
           "min": 900,
@@ -227,17 +198,20 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "targets": [
         {
-          "expr": "pressure{sensor=\"inside\"} * 1.031",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "atmospheric_pressure{sensor=\"inside\"}",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "timeFrom": null,
-      "timeShift": null,
       "title": "Pressure",
       "type": "gauge"
     },
@@ -284,11 +258,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -320,7 +292,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -337,12 +309,21 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "humidity",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_humidity",
           "interval": "",
           "legendFormat": "{{sensor}}",
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
           "expr": "fan_running",
           "interval": "",
           "legendFormat": "fan running",
@@ -350,9 +331,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Humidity",
       "tooltip": {
         "shared": true,
@@ -361,17 +340,13 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
-          "decimals": null,
           "format": "percent",
-          "label": null,
           "logBase": 1,
           "max": "100",
           "min": "0",
@@ -380,7 +355,6 @@
         {
           "decimals": 0,
           "format": "short",
-          "label": null,
           "logBase": 1,
           "max": "1",
           "min": "0",
@@ -388,8 +362,7 @@
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -438,11 +411,9 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -474,7 +445,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -493,7 +464,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "humidity{sensor=\"inside\"} - ignoring(sensor) humidity{sensor=\"outside\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_humidity{sensor=\"inside\"} - ignoring(sensor, name) air_humidity{sensor=\"outside\"}",
           "hide": false,
           "interval": "",
           "intervalFactor": 2,
@@ -501,6 +477,11 @@
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
           "expr": "-fan_running",
           "format": "time_series",
           "hide": true,
@@ -510,6 +491,10 @@
           "refId": "B"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
           "expr": "humidity_difference_threshold",
           "hide": false,
           "instant": false,
@@ -525,12 +510,11 @@
           "fill": true,
           "line": true,
           "op": "lt",
-          "value": 0
+          "value": 0,
+          "visible": true
         }
       ],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Humidity difference",
       "tooltip": {
         "shared": true,
@@ -539,26 +523,20 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
-          "decimals": null,
           "format": "percent",
-          "label": null,
           "logBase": 1,
-          "max": null,
           "min": "0",
           "show": true
         },
         {
           "decimals": 0,
           "format": "short",
-          "label": null,
           "logBase": 1,
           "max": "1",
           "min": "0",
@@ -566,11 +544,45 @@
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
+      "alert": {
+        "alertRuleTags": {},
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                0
+              ],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "A",
+                "5m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "last"
+            },
+            "type": "query"
+          }
+        ],
+        "executionErrorState": "alerting",
+        "for": "5m",
+        "frequency": "1m",
+        "handler": 1,
+        "name": "Temperature alert",
+        "noDataState": "alerting",
+        "notifications": []
+      },
       "aliasColors": {
         "inside": "blue",
         "outside": "yellow"
@@ -578,12 +590,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
       "decimals": 1,
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -615,7 +625,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -625,16 +635,41 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "temperature{job=\"ventilatore\"}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_temperature{job=\"ventilatore\"}",
+          "hide": false,
           "interval": "",
           "legendFormat": "{{sensor}}",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "air_temperature{sensor=\"inside\"} - air_temperature{sensor=\"outside\"}",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "temperature difference",
+          "refId": "B"
         }
       ],
-      "thresholds": [],
-      "timeFrom": null,
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 0,
+          "visible": true
+        }
+      ],
       "timeRegions": [],
-      "timeShift": null,
       "title": "Temperature",
       "tooltip": {
         "shared": true,
@@ -643,34 +678,26 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
-          "decimals": null,
           "format": "celsius",
           "label": "",
           "logBase": 1,
-          "max": null,
           "min": "10",
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": false
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -760,12 +787,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
       "decimals": 0,
       "description": "",
       "fieldConfig": {
         "defaults": {
-          "custom": {},
           "links": []
         },
         "overrides": []
@@ -797,7 +822,7 @@
         "alertThreshold": true
       },
       "percentage": false,
-      "pluginVersion": "7.2.0",
+      "pluginVersion": "8.4.0-beta1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -807,7 +832,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "pressure * 1.031",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "000000001"
+          },
+          "exemplar": true,
+          "expr": "atmospheric_pressure",
           "interval": "",
           "legendFormat": "{{sensor}}",
           "refId": "A"
@@ -819,12 +849,11 @@
           "fill": true,
           "line": true,
           "op": "gt",
-          "value": 1100
+          "value": 1100,
+          "visible": true
         }
       ],
-      "timeFrom": null,
       "timeRegions": [],
-      "timeShift": null,
       "title": "Pressure",
       "tooltip": {
         "shared": true,
@@ -833,9 +862,7 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
@@ -843,7 +870,6 @@
         {
           "decimals": 1,
           "format": "pressurehpa",
-          "label": null,
           "logBase": 1,
           "max": "1050",
           "min": "950",
@@ -851,21 +877,17 @@
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": false
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 26,
+  "schemaVersion": 35,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -892,5 +914,6 @@
   "timezone": "",
   "title": "Ventilatore",
   "uid": "Cmi3PXmgz",
-  "version": 21
+  "version": 26,
+  "weekStart": ""
 }
