@@ -1,6 +1,7 @@
 #ifndef FANCONTROL_H
 #define FANCONTROL_H
 
+#include <utils/io.h>
 #include <utils/stopwatch.h>
 
 class Sensors;
@@ -14,7 +15,7 @@ class FanControl {
             AUTO_ON
         };
 
-        FanControl(int relay_pin, const Sensors & sensors);
+        FanControl(const Sensors & sensors, BinaryOutput & relay);
 
         void init();
 
@@ -33,10 +34,10 @@ class FanControl {
     protected:
         void update_relay();
 
-        FanMode mode;
         const Sensors & sensors;
-        const int relay_pin;
+        BinaryOutput & relay;
 
+        FanMode mode;
         Stopwatch mode_time;
 };
 

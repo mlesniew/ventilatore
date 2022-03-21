@@ -4,11 +4,10 @@
 #include "sensor.h"
 #include "settings.h"
 
-FanControl::FanControl(int relay_pin, const Sensors & sensors):
-    sensors(sensors), relay_pin(relay_pin), mode(FORCE_OFF) {}
+FanControl::FanControl(const Sensors & sensors, BinaryOutput & relay)
+    : sensors(sensors), relay(relay), mode(FORCE_OFF) {}
 
 void FanControl::init() {
-    pinMode(relay_pin, OUTPUT);
     automatic();
 }
 
@@ -46,7 +45,6 @@ void FanControl::automatic() {
 
 void FanControl::tick() {
     const auto deltaP = sensors.inside().humidity - sensors.outside().humidity;
-    const auto deltaT = sensors.inside().temperature - sensors.outside().temperature;
     switch (mode) {
         case FORCE_ON:
         case FORCE_OFF:
@@ -113,5 +111,5 @@ unsigned int FanControl::current_mode_millis() const {
 }
 
 void FanControl::update_relay() {
-    digitalWrite(relay_pin, fan_running() ? HIGH : LOW);
+    relay.set(fan_running());
 }

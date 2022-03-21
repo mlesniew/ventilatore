@@ -11,7 +11,7 @@
 #include "settings.h"
 #include "userinterface.h"
 
-#include <utils/led.h>
+#include <utils/io.h>
 #include <utils/reset.h>
 #include <utils/reset_button.h>
 #include <utils/stopwatch.h>
@@ -26,9 +26,10 @@ ESP8266WebServer server;
 Sensors sensors(SENSOR_RESET);
 ScrollingDisplay display{D6 /* clk */, D7 /* dio */, 300};
 Stopwatch stopwatch;
-BlinkingLed wifi_led(D4, 0, 91, true);
+PinOutput<D4, true> wifi_led;
+PinOutput<RELAY, false> relay;
 OneButton button(D0, false);
-FanControl fan_control(RELAY, sensors);
+FanControl fan_control(sensors, relay);
 UserInterface ui(display, fan_control, sensors, button);
 ResetButton reset_button(D0, HIGH, 20);
 
@@ -75,6 +76,8 @@ void setup() {
         delay(120 * 1000);
         reset();
     }
+
+    relay.init();
 
     fan_control.init();
 
