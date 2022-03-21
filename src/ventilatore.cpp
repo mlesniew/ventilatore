@@ -1,3 +1,4 @@
+#include <memory>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 // This include is not really needed, but PlatformIO fails to compile without it
@@ -122,44 +123,55 @@ void setup() {
                 "fan_running %i\n"
                 "# HELP air_temperature Air temperature in degrees Celsius\n"
                 "# TYPE air_temperature gauge\n"
-                "air_temperature{sensor=\"inside\"} %.1f\n"
-                "air_temperature{sensor=\"outside\"} %.1f\n"
+                "air_temperature{name=\"%s\", sensor=\"inside\"} %.1f\n"
+                "air_temperature{name=\"%s\", sensor=\"outside\"} %.1f\n"
                 "# HELP atmospheric_pressure Atmospheric pressure in hectopascal\n"
                 "# TYPE atmospheric_pressure gauge\n"
-                "atmospheric_pressure{sensor=\"inside\"} %.1f\n"
-                "atmospheric_pressure{sensor=\"outside\"} %.1f\n"
+                "atmospheric_pressure{name=\"%s\", sensor=\"inside\"} %.1f\n"
+                "atmospheric_pressure{name=\"%s\", sensor=\"outside\"} %.1f\n"
                 "# HELP equivalent_sea_level_pressure Equivalent sea level pressure in hectopascal\n"
                 "# TYPE equivalent_sea_level_pressure gauge\n"
-                "equivalent_sea_level_pressure{sensor=\"inside\"} %.1f\n"
-                "equivalent_sea_level_pressure{sensor=\"outside\"} %.1f\n"
+                "equivalent_sea_level_pressure{name=\"%s\", sensor=\"inside\"} %.1f\n"
+                "equivalent_sea_level_pressure{name=\"%s\", sensor=\"outside\"} %.1f\n"
                 "# HELP humidity Relative air humidity in percent\n"
                 "# TYPE humidity gauge\n"
-                "air_humidity{sensor=\"inside\"} %.1f\n"
-                "air_humidity{sensor=\"outside\"} %.1f\n"
+                "air_humidity{name=\"%s\", sensor=\"inside\"} %.1f\n"
+                "air_humidity{name=\"%s\", sensor=\"outside\"} %.1f\n"
                 "# HELP humidity_difference_threshold Humidity difference at which the fan is switched\n"
                 "# TYPE humidity_difference_threshold gauge\n"
                 "humidity_difference_threshold{threshold=\"on\"} %.1f\n"
                 "humidity_difference_threshold{threshold=\"off\"} %.1f\n";
-            char buf[1200]; // pattern length is around 600
-            snprintf(buf, 1200, pattern,
+            const char * inside_sensor_name = settings::settings.data.inside_sensor_name;
+            const char * outside_sensor_name = settings::settings.data.outside_sensor_name;
+
+            // ESP stack is only 4K, so we must use the heap here
+            std::unique_ptr<char[]> buf{new char[1500]};
+            snprintf(buf.get(), 1500, pattern,
                     fan_control.fan_running() ? 1:0,
-                    sensors.inside().temperature, sensors.outside().temperature,
-                    sensors.inside().pressure, sensors.outside().pressure,
-                    eslp(sensors.inside().pressure, sensors.inside().temperature),
-                    eslp(sensors.outside().pressure, sensors.outside().temperature),
-                    sensors.inside().humidity, sensors.outside().humidity,
+                    inside_sensor_name, sensors.inside().temperature,
+                    outside_sensor_name, sensors.outside().temperature,
+                    inside_sensor_name, sensors.inside().pressure,
+                    outside_sensor_name, sensors.outside().pressure,
+                    inside_sensor_name, eslp(sensors.inside().pressure, sensors.inside().temperature),
+                    outside_sensor_name, eslp(sensors.outside().pressure, sensors.outside().temperature),
+                    inside_sensor_name, sensors.inside().humidity,
+                    outside_sensor_name, sensors.outside().humidity,
                     double(settings::settings.data.auto_on_dh),
                     double(settings::settings.data.auto_off_dh));
-            server.send(200, "text/plain", buf);
+            server.send(200, "text/plain", buf.get());
             });
 
     server.on("/config/load", []{
-            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i,\"altitude\":%i}";
-            char buf[150];
-            snprintf(buf, 150, pattern,
-                    settings::settings.data.auto_on_dh, settings::settings.data.auto_off_dh,
+            const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i,\"altitude\":%i, "
+                    "\"inside_sensor_name\": \"%s\", \"outside_sensor_name\": \"%s\"}";
+            char buf[300];
+            snprintf(buf, 300, pattern,
+                    settings::settings.data.auto_on_dh,
+                    settings::settings.data.auto_off_dh,
                     settings::settings.data.sensor_check_interval,
-                    settings::settings.data.altitude);
+                    settings::settings.data.altitude,
+                    settings::settings.data.inside_sensor_name,
+                    settings::settings.data.outside_sensor_name);
             server.send(200, "application/json", buf);
             });
 
@@ -168,11 +180,21 @@ void setup() {
             auto auto_off_dh = server.arg("autoOffDH");
             auto interval = server.arg("checkInterval");
             auto altitude = server.arg("altitude");
+            auto inside_sensor_name = server.arg("inside_sensor_name");
+            auto outside_sensor_name = server.arg("outside_sensor_name");
 
             settings::settings.data.auto_on_dh = auto_on_dh.toInt();
             settings::settings.data.auto_off_dh = auto_off_dh.toInt();
             settings::settings.data.sensor_check_interval = interval.toInt();
             settings::settings.data.altitude = altitude.toInt();
+
+            inside_sensor_name.toCharArray(
+                    settings::settings.data.inside_sensor_name,
+                    settings::SENSOR_NAME_MAX_LENGTH);
+
+            outside_sensor_name.toCharArray(
+                    settings::settings.data.outside_sensor_name,
+                    settings::SENSOR_NAME_MAX_LENGTH);
 
             settings::sanitize();
             settings::print();

@@ -7,6 +7,23 @@
 #define DEFAULT_AUTO_OFF_DH 20
 #define DEFAULT_CHECK_INTERVAL 30
 #define DEFAULT_ALTITUDE 0
+#define DEFAULT_INSIDE_SENSOR_NAME "inside"
+#define DEFAULT_OUTSIDE_SENSOR_NAME "outside"
+
+namespace {
+
+void sanitize_name(char * s) {
+    // ensure there's a terminator
+    s[settings::SENSOR_NAME_MAX_LENGTH - 1] = '\0';
+
+    for (char * t = s; *t; ++t) {
+        // remove control chars and double quotes
+        if (*t < ' ' || *t == '"')
+            *t = '_';
+    }
+}
+
+};
 
 namespace settings {
 
@@ -34,6 +51,9 @@ void sanitize() {
 
     if (settings.data.altitude >= 9000)
         settings.data.altitude = 9000;
+
+    sanitize_name(settings.data.inside_sensor_name);
+    sanitize_name(settings.data.outside_sensor_name);
 }
 
 void load() {
@@ -47,6 +67,8 @@ void load() {
         settings.data.auto_off_dh = DEFAULT_AUTO_OFF_DH;
         settings.data.sensor_check_interval = DEFAULT_CHECK_INTERVAL;
         settings.data.altitude = DEFAULT_ALTITUDE;
+        strcpy(settings.data.inside_sensor_name, DEFAULT_INSIDE_SENSOR_NAME);
+        strcpy(settings.data.outside_sensor_name, DEFAULT_OUTSIDE_SENSOR_NAME);
     } else {
         printf("Loaded settings from flash, CRC correct.\n");
     }
@@ -67,6 +89,8 @@ void print() {
     printf("  auto off humidity difference: %i\n", settings.data.auto_off_dh);
     printf("  sensor check interval:        %i\n", settings.data.sensor_check_interval);
     printf("  altitude:                     %i\n", settings.data.altitude);
+    printf("  inside sensor name:           %s\n", settings.data.inside_sensor_name);
+    printf("  outside sensor name:          %s\n", settings.data.outside_sensor_name);
 }
 
 }
