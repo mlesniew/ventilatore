@@ -15,6 +15,8 @@ namespace settings {
             unsigned int altitude;
             char inside_sensor_name[SENSOR_NAME_MAX_LENGTH];
             char outside_sensor_name[SENSOR_NAME_MAX_LENGTH];
+            unsigned int reverse_stuck_check_interval;
+            unsigned int reverse_stuck_max_temperature;
         } data;
         uint16_t checksum;
     } __attribute((packed));

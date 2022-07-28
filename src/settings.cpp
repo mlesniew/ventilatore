@@ -9,6 +9,8 @@
 #define DEFAULT_ALTITUDE 0
 #define DEFAULT_INSIDE_SENSOR_NAME "inside"
 #define DEFAULT_OUTSIDE_SENSOR_NAME "outside"
+#define DEFAULT_REVERSE_STUCK_CHECK_INTERVAL 15
+#define DEFAULT_REVERSE_STUCK_MAX_TEMPERATURE 20
 
 namespace {
 
@@ -54,6 +56,18 @@ void sanitize() {
 
     sanitize_name(settings.data.inside_sensor_name);
     sanitize_name(settings.data.outside_sensor_name);
+
+    if (settings.data.reverse_stuck_check_interval < 0)
+        settings.data.reverse_stuck_check_interval = 0;
+
+    if (settings.data.reverse_stuck_check_interval > 180)
+        settings.data.reverse_stuck_check_interval = 180;
+
+    if (settings.data.reverse_stuck_max_temperature < 0)
+        settings.data.reverse_stuck_max_temperature = 0;
+
+    if (settings.data.reverse_stuck_max_temperature > 50)
+        settings.data.reverse_stuck_max_temperature = 50;
 }
 
 void load() {
@@ -69,6 +83,8 @@ void load() {
         settings.data.altitude = DEFAULT_ALTITUDE;
         strcpy(settings.data.inside_sensor_name, DEFAULT_INSIDE_SENSOR_NAME);
         strcpy(settings.data.outside_sensor_name, DEFAULT_OUTSIDE_SENSOR_NAME);
+        settings.data.reverse_stuck_check_interval = DEFAULT_REVERSE_STUCK_CHECK_INTERVAL;
+        settings.data.reverse_stuck_max_temperature = DEFAULT_REVERSE_STUCK_MAX_TEMPERATURE;
     } else {
         printf("Loaded settings from flash, CRC correct.\n");
     }
@@ -85,12 +101,14 @@ void save() {
 
 void print() {
     printf("Settings:\n");
-    printf("  auto on humidity difference:  %i\n", settings.data.auto_on_dh);
-    printf("  auto off humidity difference: %i\n", settings.data.auto_off_dh);
-    printf("  sensor check interval:        %i\n", settings.data.sensor_check_interval);
-    printf("  altitude:                     %i\n", settings.data.altitude);
-    printf("  inside sensor name:           %s\n", settings.data.inside_sensor_name);
-    printf("  outside sensor name:          %s\n", settings.data.outside_sensor_name);
+    printf("  auto on humidity difference:    %i\n", settings.data.auto_on_dh);
+    printf("  auto off humidity difference:   %i\n", settings.data.auto_off_dh);
+    printf("  sensor check interval:          %i\n", settings.data.sensor_check_interval);
+    printf("  altitude:                       %i\n", settings.data.altitude);
+    printf("  inside sensor name:             %s\n", settings.data.inside_sensor_name);
+    printf("  outside sensor name:            %s\n", settings.data.outside_sensor_name);
+    printf("  reverse stuck check interval:   %i\n", settings.data.reverse_stuck_check_interval);
+    printf("  reverse stuck max temperature:  %i\n", settings.data.reverse_stuck_max_temperature);
 }
 
 }

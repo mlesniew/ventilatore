@@ -59,9 +59,11 @@ void FanControl::tick() {
                 mode_time.reset();
                 mode = AUTO_ON;
                 update_relay();
-            } else if (sensors.inside().temperature + 0.1 < sensors.outside().temperature
-                       && mode_time.elapsed() >= 60 * 10) {
-                printf("Temperature inside lower than outside, starting fan.\n");
+            } else if (settings::settings.data.reverse_stuck_check_interval
+                       && sensors.inside().temperature + 0.1 < sensors.outside().temperature
+                       && mode_time.elapsed() >= settings::settings.data.reverse_stuck_check_interval * 60
+                       && sensors.inside().temperature < settings::settings.data.reverse_stuck_max_temperature) {
+                printf("Possible reverse stuck detected, starting fan.\n");
                 mode_time.reset();
                 mode = AUTO_ON;
                 update_relay();

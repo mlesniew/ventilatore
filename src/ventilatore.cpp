@@ -160,15 +160,18 @@ void setup() {
 
     server.on("/config/load", []{
             const char pattern[] = "{\"autoOnDH\":%i,\"autoOffDH\":%i,\"checkInterval\":%i,\"altitude\":%i, "
-                    "\"inside_sensor_name\": \"%s\", \"outside_sensor_name\": \"%s\"}";
-            char buf[300];
-            snprintf(buf, 300, pattern,
+                    "\"inside_sensor_name\": \"%s\", \"outside_sensor_name\": \"%s\", "
+                    "\"reverse_stuck_check_interval\": %i, \"reverse_stuck_max_temperature\": %i }";
+            char buf[400];
+            snprintf(buf, 400, pattern,
                     settings::settings.data.auto_on_dh,
                     settings::settings.data.auto_off_dh,
                     settings::settings.data.sensor_check_interval,
                     settings::settings.data.altitude,
                     settings::settings.data.inside_sensor_name,
-                    settings::settings.data.outside_sensor_name);
+                    settings::settings.data.outside_sensor_name,
+                    settings::settings.data.reverse_stuck_check_interval,
+                    settings::settings.data.reverse_stuck_max_temperature);
             server.send(200, "application/json", buf);
             });
 
@@ -179,6 +182,8 @@ void setup() {
             auto altitude = server.arg("altitude");
             auto inside_sensor_name = server.arg("inside_sensor_name");
             auto outside_sensor_name = server.arg("outside_sensor_name");
+            auto reverse_stuck_check_interval = server.arg("reverse_stuck_check_interval");
+            auto reverse_stuck_max_temperature = server.arg("reverse_stuck_max_temperature");
 
             settings::settings.data.auto_on_dh = auto_on_dh.toInt();
             settings::settings.data.auto_off_dh = auto_off_dh.toInt();
@@ -192,6 +197,9 @@ void setup() {
             outside_sensor_name.toCharArray(
                     settings::settings.data.outside_sensor_name,
                     settings::SENSOR_NAME_MAX_LENGTH);
+
+            settings::settings.data.reverse_stuck_check_interval = reverse_stuck_check_interval.toInt();
+            settings::settings.data.reverse_stuck_max_temperature = reverse_stuck_max_temperature.toInt();
 
             settings::sanitize();
             settings::print();
