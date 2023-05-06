@@ -57,11 +57,30 @@ bool Sensors::init() {
     digitalWrite(reset_pin, 1);
     Wire.begin();
     Wire.setClock(1000); // use slow speed mode
-    return sensor_outside.init() && sensor_inside.init();
+
+    bool all_success = true;
+    if (!sensor_outside.init()){
+        all_success = false;
+        printf("Failed to initialize sensor from outside.\n");
+    }
+    if (!sensor_inside.init()){
+        all_success = false;
+        printf("Failed to initialize sensor from inside.\n");
+    }
+    return all_success;
 }
 
 bool Sensors::update() {
-    return sensor_inside.update() && sensor_outside.update();
+    bool all_success = true;
+    if (!sensor_outside.update()){
+        all_success = false;
+        printf("Failed to update sensor from outside.\n");
+    }
+    if (!sensor_inside.update()){
+        all_success = false;
+        printf("Failed to update sensor from inside.\n");
+    }
+    return all_success;
 }
 
 const Measurements & Sensors::inside() const {
