@@ -1,21 +1,20 @@
-#ifndef FANCONTROL_H
-#define FANCONTROL_H
+#pragma once
 
-#include <utils/io.h>
-#include <utils/stopwatch.h>
+#include <PicoUtils.h>
+#include <PicoMQTT.h>
 
-class Sensors;
+#include "settings.h"
 
 class FanControl {
     public:
-        enum FanMode {
+        enum State {
             FORCE_OFF,
             FORCE_ON,
             AUTO_OFF,
             AUTO_ON
         };
 
-        FanControl(const Sensors & sensors, BinaryOutput & relay);
+        FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQTT::Client & mqtt);
 
         void init();
 
@@ -27,18 +26,19 @@ class FanControl {
         void cycle_modes();
 
         bool fan_running() const;
-        const char * mode_str() const;
-        unsigned int current_mode_millis() const;
-        FanMode get_mode() const { return mode; }
+        State get_state() const { return state; }
+
+        DynamicJsonDocument get_json() const;
 
     protected:
+        PicoUtils::BinaryOutput & relay;
+        const Settings & settings;
+        PicoMQTT::Client & mqtt;
+
+        PicoUtils::TimedValue<State> state;
+
+        PicoUtils::TimedValue<double> humidity_inside;
+        PicoUtils::TimedValue<double> humidity_outside;
+
         void update_relay();
-
-        const Sensors & sensors;
-        BinaryOutput & relay;
-
-        FanMode mode;
-        Stopwatch mode_time;
 };
-
-#endif

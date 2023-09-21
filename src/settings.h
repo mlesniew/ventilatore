@@ -1,32 +1,21 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#pragma once
 
-#include <cstdint>
+#include <ArduinoJson.h>
 
-namespace settings {
+struct Settings {
+    double auto_on_dh;
+    double auto_off_dh;
 
-    constexpr unsigned int SENSOR_NAME_MAX_LENGTH = 64;
+    String inside_sensor_address;
+    String outside_sensor_address;
 
-    struct Settings {
-        struct {
-            unsigned char auto_on_dh;
-            unsigned char auto_off_dh;
-            unsigned int sensor_check_interval;
-            unsigned int altitude;
-            char inside_sensor_name[SENSOR_NAME_MAX_LENGTH];
-            char outside_sensor_name[SENSOR_NAME_MAX_LENGTH];
-            unsigned int reverse_stuck_check_interval;
-            unsigned int reverse_stuck_max_temperature;
-        } data;
-        uint16_t checksum;
-    } __attribute((packed));
+    unsigned int force_timeout_minutes;
 
-    extern Settings settings;
+    DynamicJsonDocument get_json() const;
+    void load(const JsonDocument & json);
+    void load();
 
     void sanitize();
-    void load();
-    void save();
+    void save() const;
     void print();
-}
-
-#endif
+};
