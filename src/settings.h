@@ -3,19 +3,27 @@
 #include <ArduinoJson.h>
 
 struct Settings {
-    double auto_on_dh;
-    double auto_off_dh;
+    struct {
+        double auto_on_dh;
+        double auto_off_dh;
+        unsigned int force_timeout_minutes;
+    } fan;
 
-    String inside_sensor_address;
-    String outside_sensor_address;
+    struct {
+        String inside;
+        String outside;
+    } sensors;
 
-    unsigned int force_timeout_minutes;
+    struct {
+        String server;
+        uint16_t port;
+        String username;
+        String password;
+    } mqtt;
 
     DynamicJsonDocument get_json() const;
     void load(const JsonDocument & json);
-    void load();
 
     void sanitize();
-    void save() const;
     void print();
 };

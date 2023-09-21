@@ -12,6 +12,8 @@
 
 #define RELAY D8
 
+const char CONFIG_FILE[] PROGMEM = "/config.json";
+
 PicoUtils::RestfulServer<ESP8266WebServer> server;
 
 Settings settings;
@@ -46,7 +48,11 @@ void setup() {
 
     LittleFS.begin();
 
-    settings.load();
+    {
+        const auto config = PicoUtils::JsonConfigFile<StaticJsonDocument<1024>>(LittleFS, FPSTR(CONFIG_FILE));
+        settings.load(config);
+        settings.print();
+    }
 
     relay.init();
     fan_control.init();
@@ -70,21 +76,17 @@ void setup() {
         server.sendJson(fan_control.get_json());
     });
 
-    server.on("/config/load", [] { server.sendJson(settings.get_json()); });
+    server.on("/config.json", HTTP_GET, [] { server.sendJson(settings.get_json()); });
 
-    server.on("/config/save", [] {
-        auto auto_on_dh = server.arg("autoOnDH");
-        auto auto_off_dh = server.arg("autoOffDH");
-
-        settings.auto_on_dh = auto_on_dh.toInt();
-        settings.auto_off_dh = auto_off_dh.toInt();
-
-        settings.sanitize();
+    server.on("/config.json", HTTP_POST, [] {
+        StaticJsonDocument<1024> json;
+        deserializeJson(json, server.arg("plain"));
+        settings.load(json);
         settings.print();
-        settings.save();
-
-        server.sendHeader("Location", "/config", true);
-        server.send(302, "text/plain", "Config saved.");
+        auto f = LittleFS.open(String(FPSTR(CONFIG_FILE)), "w");
+        serializeJsonPretty(settings.get_json(), f);
+        f.close();
+        server.sendJson(settings.get_json());
     });
 
     server.begin();

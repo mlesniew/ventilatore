@@ -4,62 +4,56 @@
 
 #include "settings.h"
 
-#define DEFAULT_AUTO_ON_DH 15
-#define DEFAULT_AUTO_OFF_DH 20
-
-const char CONFIG_FILE[] PROGMEM = "/config.json";
-
 DynamicJsonDocument Settings::get_json() const {
     DynamicJsonDocument json(256);
-    json["thresholds"]["on"] = auto_on_dh;
-    json["thresholds"]["off"] = auto_off_dh;
-    json["sensors"]["inside"] = inside_sensor_address;
-    json["sensors"]["outside"] = outside_sensor_address;
-    json["force_timeout_minutes"] = force_timeout_minutes;
+    json["fan"]["auto_on_humidity_difference"] = fan.auto_on_dh;
+    json["fan"]["auto_off_humidity_difference"] = fan.auto_off_dh;
+    json["fan"]["force_timeout_minutes"] = fan.force_timeout_minutes;
+    json["sensors"]["inside"] = sensors.inside;
+    json["sensors"]["outside"] = sensors.outside;
+    json["mqtt"]["server"] = mqtt.server;
+    json["mqtt"]["port"] = mqtt.port;
+    json["mqtt"]["username"] = mqtt.username;
+    json["mqtt"]["password"] = mqtt.password;
     return json;
 }
 
 void Settings::load(const JsonDocument & json) {
-    auto_on_dh = json["thresholds"]["on"] | DEFAULT_AUTO_ON_DH;
-    auto_off_dh = json["thresholds"]["off"] | DEFAULT_AUTO_OFF_DH;
-    inside_sensor_address = json["sensors"]["inside"] | "";
-    outside_sensor_address = json["sensors"]["outside"] | "";
-    force_timeout_minutes = json["force_timeout_minutes"] | 15;
+    fan.auto_on_dh = json["fan"]["auto_on_humidity_difference"] | 10;
+    fan.auto_off_dh = json["fan"]["auto_off_humidity_difference"] | 5;
+    fan.force_timeout_minutes = json["fan"]["force_timeout_minutes"] | 15;
+    sensors.inside = json["sensors"]["inside"] | "";
+    sensors.outside = json["sensors"]["outside"] | "";
+    mqtt.server = json["mqtt"]["server"] | "calor.local";
+    mqtt.port = json["mqtt"]["port"] | 1883;
+    mqtt.username = json["mqtt"]["username"] | "";
+    mqtt.password = json["mqtt"]["password"] | "";
     sanitize();
 }
 
 void Settings::sanitize() {
-    if (auto_on_dh > 100) {
-        auto_on_dh = 100;
+    if (fan.auto_on_dh > 100) {
+        fan.auto_on_dh = 100;
     }
 
-    if (auto_off_dh > 100) {
-        auto_off_dh = 100;
+    if (fan.auto_off_dh > 100) {
+        fan.auto_off_dh = 100;
     }
 
     // auto_on_dh must be grater or equal to auto_off_dh
-    if (auto_off_dh > auto_on_dh) {
-        const auto tmp = auto_off_dh;
-        auto_off_dh = auto_on_dh;
-        auto_on_dh = tmp;
+    if (fan.auto_off_dh > fan.auto_on_dh) {
+        const auto tmp = fan.auto_off_dh;
+        fan.auto_off_dh = fan.auto_on_dh;
+        fan.auto_on_dh = tmp;
     }
 
-    inside_sensor_address.toLowerCase();
-    inside_sensor_address.trim();
-    outside_sensor_address.toLowerCase();
-    outside_sensor_address.trim();
-}
-
-void Settings::load() {
-    const auto config = PicoUtils::JsonConfigFile<StaticJsonDocument<256>>(LittleFS, FPSTR(CONFIG_FILE));
-    load(config);
-    print();
-}
-
-void Settings::save() const {
-    // TODO
+    sensors.inside.toLowerCase();
+    sensors.inside.trim();
+    sensors.outside.toLowerCase();
+    sensors.outside.trim();
 }
 
 void Settings::print() {
     serializeJsonPretty(get_json(), Serial);
+    Serial.println();
 }

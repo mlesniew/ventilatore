@@ -35,14 +35,14 @@ void FanControl::init() {
                       name, (double) value, (double) humidity_inside - (double) humidity_outside);
     };
 
-    if (settings.inside_sensor_address.length()) {
-        mqtt.subscribe("celsius/+/" + settings.inside_sensor_address, [handler, this](const char *, Stream & stream) {
+    if (settings.sensors.inside.length()) {
+        mqtt.subscribe("celsius/+/" + settings.sensors.inside, [handler, this](const char *, Stream & stream) {
             handler(stream, "inside", humidity_inside);
         });
     }
 
-    if (settings.outside_sensor_address.length()) {
-        mqtt.subscribe("celsius/+/" + settings.outside_sensor_address, [handler, this](const char *, Stream & stream) {
+    if (settings.sensors.outside.length()) {
+        mqtt.subscribe("celsius/+/" + settings.sensors.outside, [handler, this](const char *, Stream & stream) {
             handler(stream, "outside", humidity_outside);
         });
     }
@@ -56,17 +56,17 @@ void FanControl::tick() {
     if (mode != AUTO) {
         fan_running = (mode == ON);
 
-        if (mode.elapsed_millis() >= settings.force_timeout_minutes * 60 * 1000) {
+        if (mode.elapsed_millis() >= settings.fan.force_timeout_minutes * 60 * 1000) {
             Serial.printf("Switching back to automatic mode...\n");
             mode = AUTO;
         }
     }
 
     if (mode == AUTO) {
-        if (fan_running && (deltaP <= settings.auto_off_dh)) {
+        if (fan_running && (deltaP <= settings.fan.auto_off_dh)) {
             Serial.printf("Humidity difference dropped, stopping fan.\n");
             fan_running = false;
-        } else if (!fan_running && (deltaP >= settings.auto_on_dh)) {
+        } else if (!fan_running && (deltaP >= settings.fan.auto_on_dh)) {
             Serial.printf("Humidity difference raised, starting fan.\n");
             fan_running = true;
         }

@@ -1,0 +1,17 @@
+{
+    "fan": {
+        "auto_off_humidity_difference": 5,
+        "auto_on_humidity_difference": 10,
+        "force_timeout_minutes": 15
+    },
+    "mqtt": {
+        "password": "",
+        "port": 1883,
+        "server": "calor.local",
+        "username": ""
+    },
+    "sensors": {
+        "inside": "a4:c1:38:11:11:11",
+        "outside": "a4:c1:38:22:22:22"
+    }
+}
