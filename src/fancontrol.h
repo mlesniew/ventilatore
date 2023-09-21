@@ -7,35 +7,27 @@
 
 class FanControl {
     public:
-        enum State {
-            FORCE_OFF,
-            FORCE_ON,
-            AUTO_OFF,
-            AUTO_ON
+        enum Mode {
+            OFF,
+            ON,
+            AUTO
         };
 
         FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQTT::Client & mqtt);
 
         void init();
-
-        void force_on();
-        void force_off();
-        void automatic();
-
         void tick();
-        void cycle_modes();
-
-        bool fan_running() const;
-        State get_state() const { return state; }
 
         DynamicJsonDocument get_json() const;
 
+        PicoUtils::TimedValue<Mode> mode;
+
     protected:
+        bool fan_running;
+
         PicoUtils::BinaryOutput & relay;
         const Settings & settings;
         PicoMQTT::Client & mqtt;
-
-        PicoUtils::TimedValue<State> state;
 
         PicoUtils::TimedValue<double> humidity_inside;
         PicoUtils::TimedValue<double> humidity_outside;

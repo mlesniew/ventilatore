@@ -57,12 +57,12 @@ void setup() {
     });
 
     server.on("/on", [] {
-        fan_control.force_on();
+        fan_control.mode = FanControl::ON;
         server.send(200);
     });
 
     server.on("/off", [] {
-        fan_control.force_off();
+        fan_control.mode = FanControl::OFF;
         server.send(200);
     });
 
@@ -95,6 +95,8 @@ void setup() {
 
 void loop() {
     server.handleClient();
+
+    wifi_control.tick();
 
     mqtt.loop();
 
