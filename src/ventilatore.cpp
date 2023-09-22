@@ -1,8 +1,9 @@
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 
-#include <WiFiManager.h>
+#include <PicoPrometheus.h>
 #include <PicoUtils.h>
+#include <WiFiManager.h>
 
 #include "fancontrol.h"
 #include "settings.h"
@@ -19,6 +20,11 @@ PicoUtils::RestfulServer<ESP8266WebServer> server;
 Settings settings;
 
 PicoMQTT::Client mqtt;
+
+PicoPrometheus::Registry & get_prometheus() {
+    static PicoPrometheus::Registry registry;
+    return registry;
+}
 
 PicoUtils::PinOutput<D4, true> wifi_led;
 PicoUtils::WiFiControl<WiFiManager> wifi_control(wifi_led);
@@ -56,6 +62,9 @@ void setup() {
 
     relay.init();
     fan_control.init();
+
+    get_prometheus().labels["module"] = "ventilatore";
+    get_prometheus().register_metrics_endpoint(server);
 
     server.on("/reset", [] {
         server.send(200);

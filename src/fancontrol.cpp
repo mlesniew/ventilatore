@@ -1,14 +1,23 @@
 #include <limits>
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include <PicoPrometheus.h>
 
 #include "fancontrol.h"
 #include "settings.h"
+
+PicoPrometheus::Registry & get_prometheus();
+
+namespace metrics {
+PicoPrometheus::Gauge fan_running(get_prometheus(), "fan_running", "Fan running state");
+PicoPrometheus::Gauge air_humidity(get_prometheus(), "air_humidity", "Relative humidity in percent");
+}
 
 FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQTT::Client & mqtt)
     : mode(OFF), fan_running(false), relay(relay), settings(settings), mqtt(mqtt),
       humidity_inside(std::numeric_limits<double>::quiet_NaN()),
       humidity_outside(std::numeric_limits<double>::quiet_NaN()) {
+
 }
 
 DynamicJsonDocument FanControl::get_json() const {
@@ -46,6 +55,10 @@ void FanControl::init() {
             handler(stream, "outside", humidity_outside);
         });
     }
+
+    metrics::fan_running.bind([this] { return fan_running ? 1 : 0; });
+    metrics::air_humidity[ {{"sensor", "inside"}}].bind([this] { return (double) humidity_inside; });
+    metrics::air_humidity[ {{"sensor", "outside"}}].bind([this] { return (double) humidity_outside; });
 
     mode = AUTO;
 }
