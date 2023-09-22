@@ -19,8 +19,9 @@ class FanControl {
         void tick();
 
         DynamicJsonDocument get_json() const;
-
         PicoUtils::TimedValue<Mode> mode;
+
+        bool is_fan_running() const { return fan_running; }
 
     protected:
         bool fan_running;

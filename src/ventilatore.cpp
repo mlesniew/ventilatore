@@ -33,6 +33,8 @@ FanControl fan_control(relay, settings, mqtt);
 PicoUtils::PinInput<D0, true> button;
 PicoUtils::ResetButton reset_button(button);
 
+PicoUtils::PinInput<D2> toggle_switch;
+
 void setup() {
     wifi_led.init();
     wifi_led.set(true);
@@ -117,6 +119,17 @@ void setup() {
     }
 }
 
+PicoUtils::PeriodicRun switch_proc(0.25, [] {
+    // TODO: Debounce?
+    static bool last_switch_position = (bool) toggle_switch;
+    bool switch_position = toggle_switch;
+    if (switch_position != last_switch_position) {
+        fan_control.mode = fan_control.is_fan_running() ? FanControl::OFF : FanControl::ON;
+        Serial.printf("Entering force %s mode\n", fan_control.mode == FanControl::ON ? "ON" : "OFF");
+    }
+    last_switch_position = toggle_switch;
+});
+
 void loop() {
     ArduinoOTA.handle();
 
@@ -126,6 +139,6 @@ void loop() {
 
     mqtt.loop();
 
-    // it's time to read the data again
+    switch_proc.tick();
     fan_control.tick();
 }
