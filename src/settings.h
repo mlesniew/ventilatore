@@ -4,6 +4,11 @@
 
 struct Settings {
     struct {
+        String hostname;
+        String ota_password;
+    } net;
+
+    struct {
         double auto_on_dh;
         double auto_off_dh;
         unsigned int force_timeout_minutes;

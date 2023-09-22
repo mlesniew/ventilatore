@@ -15,6 +15,8 @@ DynamicJsonDocument Settings::get_json() const {
     json["mqtt"]["port"] = mqtt.port;
     json["mqtt"]["username"] = mqtt.username;
     json["mqtt"]["password"] = mqtt.password;
+    json["net"]["hostname"] = net.hostname;
+    json["net"]["ota_password"] = net.ota_password;
     return json;
 }
 
@@ -28,6 +30,8 @@ void Settings::load(const JsonDocument & json) {
     mqtt.port = json["mqtt"]["port"] | 1883;
     mqtt.username = json["mqtt"]["username"] | "";
     mqtt.password = json["mqtt"]["password"] | "";
+    net.hostname = json["net"]["hostname"] | "ventilatore";
+    net.ota_password = json["net"]["ota_password"] | "";
     sanitize();
 }
 

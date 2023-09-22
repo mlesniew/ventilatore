@@ -1,3 +1,4 @@
+#include <ArduinoOTA.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 
@@ -7,9 +8,6 @@
 
 #include "fancontrol.h"
 #include "settings.h"
-
-#define HOSTNAME "ventilatore"
-#define PASSWORD "turbina0"
 
 #define RELAY D8
 
@@ -50,7 +48,7 @@ void setup() {
     printf("\n\n");
 
     // reset_button.init();
-    wifi_control.init(HOSTNAME, PASSWORD);
+    wifi_control.init(settings.net.hostname.c_str(), "turbina0");
 
     LittleFS.begin();
 
@@ -63,8 +61,10 @@ void setup() {
     relay.init();
     fan_control.init();
 
-    get_prometheus().labels["module"] = "ventilatore";
-    get_prometheus().register_metrics_endpoint(server);
+    {
+        get_prometheus().labels["module"] = "ventilatore";
+        get_prometheus().register_metrics_endpoint(server);
+    }
 
     server.on("/reset", [] {
         server.send(200);
@@ -100,11 +100,26 @@ void setup() {
 
     server.begin();
 
-    mqtt.host = "calor.local";
-    mqtt.begin();
+    {
+        mqtt.host = settings.mqtt.server;
+        mqtt.port = settings.mqtt.port;
+        mqtt.username = settings.mqtt.username;
+        mqtt.password = settings.mqtt.password;
+        mqtt.begin();
+    }
+
+    {
+        ArduinoOTA.setHostname(settings.net.hostname.c_str());
+        if (settings.net.ota_password.length()) {
+            ArduinoOTA.setPassword(settings.net.ota_password.c_str());
+        }
+        ArduinoOTA.begin();
+    }
 }
 
 void loop() {
+    ArduinoOTA.handle();
+
     server.handleClient();
 
     wifi_control.tick();
