@@ -28,7 +28,7 @@ PicoPrometheus::Registry & get_prometheus() {
 }
 
 PicoUtils::PinOutput<BLUE_LED, true> wifi_led;
-PicoUtils::WiFiControl<WiFiManager> wifi_control(wifi_led);
+PicoUtils::Blink led_blinker(wifi_led, 0, 91);
 
 PicoUtils::PinOutput<RELAY, false> relay;
 FanControl fan_control(relay, settings, mqtt);
@@ -40,7 +40,9 @@ PicoUtils::PinInput<SWITCH> toggle_switch;
 
 void setup() {
     wifi_led.init();
-    wifi_led.set(true);
+
+    led_blinker.set_pattern(0b10);
+    PicoUtils::BackgroundBlinker bb(led_blinker);
 
     Serial.begin(115200);
 
@@ -52,9 +54,6 @@ void setup() {
     printf("  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n");
     printf("\n\n");
 
-    // reset_button.init();
-    wifi_control.init(settings.net.hostname.c_str(), "turbina0");
-
     LittleFS.begin();
 
     {
@@ -62,6 +61,24 @@ void setup() {
         settings.load(config);
         settings.print();
     }
+
+    // reset_button.init();
+    {
+        WiFi.hostname(settings.net.hostname);
+        WiFi.setAutoReconnect(true);
+
+        WiFiManager wifi_manager;
+        wifi_manager.setConfigPortalTimeout(5 * 60);
+        wifi_manager.setAPCallback([](WiFiManager *) { led_blinker.set_pattern(0b100100100 << 9); });
+        wifi_manager.autoConnect("Ventilatore", "turbina0");
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println("Failed to connect, restarting.");
+            ESP.reset();
+        }
+        led_blinker.set_pattern(0b10);
+
+        MDNS.begin(settings.net.hostname);
+    };
 
     relay.init();
     fan_control.init();
@@ -120,6 +137,8 @@ void setup() {
         }
         ArduinoOTA.begin();
     }
+
+    led_blinker.set_pattern(1);
 }
 
 PicoUtils::PeriodicRun switch_proc(0.25, [] {
@@ -133,15 +152,29 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
     last_switch_position = toggle_switch;
 });
 
+void update_status_led() {
+    if (WiFi.status() == WL_CONNECTED) {
+        if (mqtt.connected()) {
+            led_blinker.set_pattern(uint64_t(0b101) << 60);
+        } else {
+            led_blinker.set_pattern(uint64_t(0b1) << 60);
+        }
+    } else {
+        led_blinker.set_pattern(0b1100);
+    }
+    led_blinker.tick();
+};
+
 void loop() {
     ArduinoOTA.handle();
 
     server.handleClient();
 
-    wifi_control.tick();
-
     mqtt.loop();
 
     switch_proc.tick();
     fan_control.tick();
+
+    MDNS.update();
+    update_status_led();
 }
