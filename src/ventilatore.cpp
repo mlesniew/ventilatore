@@ -9,7 +9,10 @@
 #include "fancontrol.h"
 #include "settings.h"
 
-#define RELAY D8
+#define BLUE_LED 13 /* D7 */
+#define RELAY 12 /* D6 */
+#define SWITCH 4 /* D2 */
+#define BUTTON 0 /* D3 */
 
 const char CONFIG_FILE[] PROGMEM = "/config.json";
 
@@ -24,16 +27,16 @@ PicoPrometheus::Registry & get_prometheus() {
     return registry;
 }
 
-PicoUtils::PinOutput<D4, true> wifi_led;
+PicoUtils::PinOutput<BLUE_LED, true> wifi_led;
 PicoUtils::WiFiControl<WiFiManager> wifi_control(wifi_led);
 
 PicoUtils::PinOutput<RELAY, false> relay;
 FanControl fan_control(relay, settings, mqtt);
 
-PicoUtils::PinInput<D0, true> button;
+PicoUtils::PinInput<BUTTON, true> button;
 PicoUtils::ResetButton reset_button(button);
 
-PicoUtils::PinInput<D2> toggle_switch;
+PicoUtils::PinInput<SWITCH> toggle_switch;
 
 void setup() {
     wifi_led.init();
