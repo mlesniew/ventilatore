@@ -4,6 +4,7 @@
 
 #include <PicoPrometheus.h>
 #include <PicoUtils.h>
+#include <PicoSyslog.h>
 #include <WiFiManager.h>
 
 #include "fancontrol.h"
@@ -38,6 +39,9 @@ PicoUtils::ResetButton reset_button(button);
 
 PicoUtils::PinInput<SWITCH> toggle_switch;
 
+PicoSyslog::SimpleLogger syslog("ventilatore");
+Print & logger = syslog;
+
 void setup() {
     wifi_led.init();
 
@@ -45,14 +49,13 @@ void setup() {
     PicoUtils::BackgroundBlinker bb(led_blinker);
 
     Serial.begin(115200);
-
-    printf("\n\n");
-    printf("                 _   _ _       _\n");
-    printf("__   _____ _ __ | |_(_) | __ _| |_ ___  _ __ ___\n");
-    printf("\\ \\ / / _ \\ '_ \\| __| | |/ _` | __/ _ \\| '__/ _ \\\n");
-    printf(" \\ V /  __/ | | | |_| | | (_| | || (_) | | |  __/\n");
-    printf("  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n");
-    printf("\n\n");
+    Serial.print("\n\n");
+    Serial.print("                 _   _ _       _\n");
+    Serial.print("__   _____ _ __ | |_(_) | __ _| |_ ___  _ __ ___\n");
+    Serial.print("\\ \\ / / _ \\ '_ \\| __| | |/ _` | __/ _ \\| '__/ _ \\\n");
+    Serial.print(" \\ V /  __/ | | | |_| | | (_| | || (_) | | |  __/\n");
+    Serial.print("  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n");
+    Serial.print("\n\n");
 
     LittleFS.begin();
 
@@ -61,6 +64,8 @@ void setup() {
         settings.load(config);
         settings.print();
     }
+
+    syslog.server = settings.net.syslog;
 
     // reset_button.init();
     {
@@ -72,7 +77,7 @@ void setup() {
         wifi_manager.setAPCallback([](WiFiManager *) { led_blinker.set_pattern(0b100100100 << 9); });
         wifi_manager.autoConnect("Ventilatore", "turbina0");
         if (WiFi.status() != WL_CONNECTED) {
-            Serial.println("Failed to connect, restarting.");
+            syslog.println("Failed to connect, restarting.");
             ESP.reset();
         }
         led_blinker.set_pattern(0b10);
@@ -147,7 +152,7 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
     bool switch_position = toggle_switch;
     if (switch_position != last_switch_position) {
         fan_control.mode = fan_control.is_fan_running() ? FanControl::OFF : FanControl::ON;
-        Serial.printf("Entering force %s mode\n", fan_control.mode == FanControl::ON ? "ON" : "OFF");
+        syslog.printf("Entering force %s mode\n", fan_control.mode == FanControl::ON ? "ON" : "OFF");
     }
     last_switch_position = toggle_switch;
 });

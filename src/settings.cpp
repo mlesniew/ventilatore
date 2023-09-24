@@ -4,6 +4,8 @@
 
 #include "settings.h"
 
+extern Print & logger;
+
 DynamicJsonDocument Settings::get_json() const {
     DynamicJsonDocument json(256);
     json["fan"]["auto_on_humidity_difference"] = fan.auto_on_dh;
@@ -17,6 +19,7 @@ DynamicJsonDocument Settings::get_json() const {
     json["mqtt"]["password"] = mqtt.password;
     json["net"]["hostname"] = net.hostname;
     json["net"]["ota_password"] = net.ota_password;
+    json["net"]["syslog"] = net.syslog;
     return json;
 }
 
@@ -32,6 +35,7 @@ void Settings::load(const JsonDocument & json) {
     mqtt.password = json["mqtt"]["password"] | "";
     net.hostname = json["net"]["hostname"] | "ventilatore";
     net.ota_password = json["net"]["ota_password"] | "";
+    net.syslog = json["net"]["syslog"] | "";
     sanitize();
 }
 
@@ -58,6 +62,6 @@ void Settings::sanitize() {
 }
 
 void Settings::print() {
-    serializeJsonPretty(get_json(), Serial);
-    Serial.println();
+    serializeJsonPretty(get_json(), logger);
+    logger.println();
 }

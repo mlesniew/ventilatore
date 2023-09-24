@@ -6,6 +6,7 @@ struct Settings {
     struct {
         String hostname;
         String ota_password;
+        String syslog;
     } net;
 
     struct {

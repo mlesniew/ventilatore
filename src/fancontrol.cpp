@@ -7,6 +7,7 @@
 #include "settings.h"
 
 PicoPrometheus::Registry & get_prometheus();
+extern Print & logger;
 
 namespace metrics {
 PicoPrometheus::Gauge fan_running(get_prometheus(), "fan_running", "Fan running state");
@@ -40,7 +41,7 @@ void FanControl::init() {
             return;
         }
         value = json["humidity"].as<double>();
-        Serial.printf("Updated %s humidity to %.1f %%; current humidity difference is %.1f %%\n",
+        logger.printf("Updated %s humidity to %.1f %%; current humidity difference is %.1f %%\n",
                       name, (double) value, (double) humidity_inside - (double) humidity_outside);
     };
 
@@ -70,17 +71,17 @@ void FanControl::tick() {
         fan_running = (mode == ON);
 
         if (mode.elapsed_millis() >= settings.fan.force_timeout_minutes * 60 * 1000) {
-            Serial.printf("Switching back to automatic mode...\n");
+            logger.printf("Switching back to automatic mode...\n");
             mode = AUTO;
         }
     }
 
     if (mode == AUTO) {
         if (fan_running && (deltaP <= settings.fan.auto_off_dh)) {
-            Serial.printf("Humidity difference dropped, stopping fan.\n");
+            logger.printf("Humidity difference dropped, stopping fan.\n");
             fan_running = false;
         } else if (!fan_running && (deltaP >= settings.fan.auto_on_dh)) {
-            Serial.printf("Humidity difference raised, starting fan.\n");
+            logger.printf("Humidity difference raised, starting fan.\n");
             fan_running = true;
         }
     }
