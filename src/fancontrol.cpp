@@ -71,17 +71,17 @@ void FanControl::tick() {
         fan_running = (mode == ON);
 
         if (mode.elapsed_millis() >= settings.fan.force_timeout_minutes * 60 * 1000) {
-            logger.printf("Switching back to automatic mode...\n");
+            logger.println(F("Switching back to automatic mode..."));
             mode = AUTO;
         }
     }
 
     if (mode == AUTO) {
         if (fan_running && (deltaP <= settings.fan.auto_off_dh)) {
-            logger.printf("Humidity difference dropped, stopping fan.\n");
+            logger.println(F("Humidity difference dropped, stopping fan."));
             fan_running = false;
         } else if (!fan_running && (deltaP >= settings.fan.auto_on_dh)) {
-            logger.printf("Humidity difference raised, starting fan.\n");
+            logger.println(F("Humidity difference raised, starting fan."));
             fan_running = true;
         }
     }
