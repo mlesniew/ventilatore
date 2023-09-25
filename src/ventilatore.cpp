@@ -34,7 +34,6 @@ PicoUtils::PinOutput<RELAY, false> relay;
 FanControl fan_control(relay, settings, mqtt);
 
 PicoUtils::PinInput<BUTTON, true> button;
-PicoUtils::ResetButton reset_button(button);
 
 PicoUtils::PinInput<SWITCH> toggle_switch;
 
@@ -107,8 +106,6 @@ void setup() {
     }
 
     syslog.server = settings.net.syslog;
-
-    // reset_button.init();
 
     relay.init();
     fan_control.init();
