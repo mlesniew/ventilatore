@@ -5,7 +5,6 @@
 #include <PicoPrometheus.h>
 #include <PicoUtils.h>
 #include <PicoSyslog.h>
-#include <WiFiManager.h>
 
 #include "fancontrol.h"
 #include "settings.h"
@@ -42,6 +41,45 @@ PicoUtils::PinInput<SWITCH> toggle_switch;
 PicoSyslog::SimpleLogger syslog("ventilatore");
 Print & logger = syslog;
 
+void setup_wifi() {
+    WiFi.hostname(settings.net.hostname);
+    WiFi.setAutoReconnect(true);
+
+    syslog.println(F("Press button or toggle switch now to enter SmartConfig."));
+    led_blinker.set_pattern(1);
+    const PicoUtils::Stopwatch stopwatch;
+    bool smart_config = false;
+    {
+        const bool initial_switch_pos = toggle_switch;
+        while (!smart_config && (stopwatch.elapsed_millis() < 5 * 1000)) {
+            smart_config = (button || toggle_switch != initial_switch_pos);
+            delay(100);
+        }
+    }
+
+    if (smart_config) {
+        led_blinker.set_pattern(0b100100100 << 9);
+
+        syslog.println(F("Entering SmartConfig mode."));
+        WiFi.beginSmartConfig();
+        while (!WiFi.smartConfigDone() && (stopwatch.elapsed_millis() < 5 * 60 * 1000)) {
+            delay(100);
+        }
+
+        if (WiFi.smartConfigDone()) {
+            syslog.println(F("SmartConfig success."));
+        } else {
+            syslog.println(F("SmartConfig failed.  Reboot."));
+            ESP.reset();
+        }
+    } else {
+        WiFi.softAPdisconnect(true);
+        WiFi.begin();
+    }
+
+    led_blinker.set_pattern(0b10);
+}
+
 void setup() {
     wifi_led.init();
 
@@ -49,13 +87,16 @@ void setup() {
     PicoUtils::BackgroundBlinker bb(led_blinker);
 
     Serial.begin(115200);
-    Serial.print("\n\n");
-    Serial.print("                 _   _ _       _\n");
-    Serial.print("__   _____ _ __ | |_(_) | __ _| |_ ___  _ __ ___\n");
-    Serial.print("\\ \\ / / _ \\ '_ \\| __| | |/ _` | __/ _ \\| '__/ _ \\\n");
-    Serial.print(" \\ V /  __/ | | | |_| | | (_| | || (_) | | |  __/\n");
-    Serial.print("  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n");
-    Serial.print("\n\n");
+    delay(5 * 1000);
+    Serial.print(F("\n\n"
+                   "                 _   _ _       _\n"
+                   "__   _____ _ __ | |_(_) | __ _| |_ ___  _ __ ___\n"
+                   "\\ \\ / / _ \\ '_ \\| __| | |/ _` | __/ _ \\| '__/ _ \\\n"
+                   " \\ V /  __/ | | | |_| | | (_| | || (_) | | |  __/\n"
+                   "  \\_/ \\___|_| |_|\\__|_|_|\\__,_|\\__\\___/|_|  \\___|\n"
+                   "\n\n"));
+
+    setup_wifi();
 
     LittleFS.begin();
 
@@ -68,22 +109,6 @@ void setup() {
     syslog.server = settings.net.syslog;
 
     // reset_button.init();
-    {
-        WiFi.hostname(settings.net.hostname);
-        WiFi.setAutoReconnect(true);
-
-        WiFiManager wifi_manager;
-        wifi_manager.setConfigPortalTimeout(5 * 60);
-        wifi_manager.setAPCallback([](WiFiManager *) { led_blinker.set_pattern(0b100100100 << 9); });
-        wifi_manager.autoConnect("Ventilatore", "turbina0");
-        if (WiFi.status() != WL_CONNECTED) {
-            syslog.println("Failed to connect, restarting.");
-            ESP.reset();
-        }
-        led_blinker.set_pattern(0b10);
-
-        MDNS.begin(settings.net.hostname);
-    };
 
     relay.init();
     fan_control.init();
