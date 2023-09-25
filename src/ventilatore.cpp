@@ -189,7 +189,7 @@ void update_status_led() {
 };
 
 void loop() {
-    ArduinoOTA.handle();
+    ArduinoOTA.handle();  // this also handles MDNS updates
 
     server.handleClient();
 
@@ -198,6 +198,5 @@ void loop() {
     switch_proc.tick();
     fan_control.tick();
 
-    MDNS.update();
     update_status_led();
 }
