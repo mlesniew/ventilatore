@@ -25,7 +25,7 @@ struct Settings {
         uint16_t port;
         String username;
         String password;
-    } mqtt;
+    } mqtt, hass;
 
     DynamicJsonDocument get_json() const;
     void load(const JsonDocument & json);

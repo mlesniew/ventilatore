@@ -7,7 +7,7 @@
 extern Print & logger;
 
 DynamicJsonDocument Settings::get_json() const {
-    DynamicJsonDocument json(256);
+    DynamicJsonDocument json(1024);
     json["fan"]["auto_on_humidity_difference"] = fan.auto_on_dh;
     json["fan"]["auto_off_humidity_difference"] = fan.auto_off_dh;
     json["fan"]["force_timeout_minutes"] = fan.force_timeout_minutes;
@@ -20,6 +20,10 @@ DynamicJsonDocument Settings::get_json() const {
     json["net"]["hostname"] = net.hostname;
     json["net"]["ota_password"] = net.ota_password;
     json["net"]["syslog"] = net.syslog;
+    json["hass"]["server"] = hass.server;
+    json["hass"]["port"] = hass.port;
+    json["hass"]["username"] = hass.username;
+    json["hass"]["password"] = hass.password;
     return json;
 }
 
@@ -36,6 +40,10 @@ void Settings::load(const JsonDocument & json) {
     net.hostname = json["net"]["hostname"] | "ventilatore";
     net.ota_password = json["net"]["ota_password"] | "";
     net.syslog = json["net"]["syslog"] | "";
+    hass.server = json["hass"]["server"] | "";
+    hass.port = json["hass"]["port"] | 1883;
+    hass.username = json["hass"]["username"] | "";
+    hass.password = json["hass"]["password"] | "";
     sanitize();
 }
 

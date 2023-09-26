@@ -7,6 +7,7 @@
 #include <PicoSyslog.h>
 
 #include "fancontrol.h"
+#include "hass.h"
 #include "settings.h"
 
 #define BLUE_LED 13 /* D7 */
@@ -162,6 +163,8 @@ void setup() {
     }
 
     led_blinker.set_pattern(1);
+
+    HomeAssistant::init();
 }
 
 PicoUtils::PeriodicRun switch_proc(0.25, [] {
@@ -170,7 +173,6 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
     bool switch_position = toggle_switch;
     if (switch_position != last_switch_position) {
         fan_control.mode = fan_control.is_fan_running() ? FanControl::OFF : FanControl::ON;
-        syslog.printf("Entering force %s mode\n", fan_control.mode == FanControl::ON ? "ON" : "OFF");
     }
     last_switch_position = toggle_switch;
 });
@@ -199,4 +201,6 @@ void loop() {
     fan_control.tick();
 
     update_status_led();
+
+    HomeAssistant::loop();
 }
