@@ -18,7 +18,7 @@ PicoMQTT::Client mqtt;
 
 void report_fan_state(bool running) {
     syslog.printf("Fan is now %s.\n", running ? "running" : "stopped");
-    mqtt.publish("ventilatore/" + board_id + "/state", running ? "ON" : "OFF");
+    mqtt.publish("ventilatore/" + board_id + "/state", running ? "ON" : "OFF", 0, true);
 }
 
 void report_fan_mode(FanControl::Mode mode) {
@@ -27,7 +27,7 @@ void report_fan_mode(FanControl::Mode mode) {
     if (mode == FanControl::OFF) { modestr = "off"; }
 
     syslog.printf("Mode set to %s.\n", modestr);
-    mqtt.publish("ventilatore/" + board_id + "/mode", modestr);
+    mqtt.publish("ventilatore/" + board_id + "/mode", modestr, 0, true);
 }
 
 PicoUtils::Watch<bool> fan_state_watch(
