@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <PicoMQTT.h>
 #include <PicoSyslog.h>
+#include <PicoUtils.h>
 
 #include "fancontrol.h"
 #include "hass.h"
@@ -11,28 +12,6 @@ extern Settings settings;
 extern PicoSyslog::SimpleLogger syslog;
 
 namespace {
-
-template <typename T>
-class Watch {
-    public:
-        Watch(std::function<T()> getter, std::function<void(T)> callback):
-            callback(callback), getter(getter), last_value(T(getter())) {
-        }
-
-        void tick() {
-            T new_value = getter();
-            if (new_value != last_value) {
-                callback(new_value);
-                last_value = new_value;
-            }
-        }
-
-        std::function<void(T)> callback;
-
-    protected:
-        std::function<T()> getter;
-        T last_value;
-};
 
 const String board_id(ESP.getChipId(), HEX);
 PicoMQTT::Client mqtt;
@@ -51,11 +30,11 @@ void report_fan_mode(FanControl::Mode mode) {
     mqtt.publish("ventilatore/" + board_id + "/mode", modestr);
 }
 
-Watch<bool> fan_state_watch(
+PicoUtils::Watch<bool> fan_state_watch(
     [] { return fan_control.is_fan_running(); },
     report_fan_state);
 
-Watch<FanControl::Mode> fan_mode_watch(
+PicoUtils::Watch<FanControl::Mode> fan_mode_watch(
     [] { return fan_control.mode; },
     report_fan_mode);
 
@@ -117,8 +96,8 @@ void init() {
         mqtt.publish(mqtt.will.topic, "online", 0, true);
 
         // notify about the current state
-        report_fan_mode(fan_control.mode);
-        report_fan_state(fan_control.is_fan_running());
+        fan_state_watch.fire();
+        fan_mode_watch.fire();
     };
 
     auto handler = [](String payload) {
