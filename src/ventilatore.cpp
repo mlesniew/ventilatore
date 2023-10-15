@@ -28,15 +28,15 @@ PicoPrometheus::Registry & get_prometheus() {
     return registry;
 }
 
-PicoUtils::PinOutput<BLUE_LED, true> wifi_led;
+PicoUtils::PinOutput wifi_led(BLUE_LED, true);
 PicoUtils::Blink led_blinker(wifi_led, 0, 91);
 
-PicoUtils::PinOutput<RELAY, false> relay;
+PicoUtils::PinOutput relay(RELAY);
 FanControl fan_control(relay, settings, mqtt);
 
-PicoUtils::PinInput<BUTTON, true> button;
+PicoUtils::PinInput button(BUTTON, true);
 
-PicoUtils::PinInput<SWITCH> toggle_switch;
+PicoUtils::PinInput toggle_switch(SWITCH);
 
 PicoSyslog::SimpleLogger syslog("ventilatore");
 Print & logger = syslog;
