@@ -8,11 +8,10 @@ extern Print & logger;
 
 DynamicJsonDocument Settings::get_json() const {
     DynamicJsonDocument json(1024);
-    json["fan"]["auto_on_humidity_difference"] = fan.auto_on_dh;
-    json["fan"]["auto_off_humidity_difference"] = fan.auto_off_dh;
+    json["fan"]["auto_on_humidity"] = fan.auto_on_humidity;
+    json["fan"]["auto_off_humidity"] = fan.auto_off_humidity;
     json["fan"]["force_timeout_minutes"] = fan.force_timeout_minutes;
-    json["sensors"]["inside"] = sensors.inside;
-    json["sensors"]["outside"] = sensors.outside;
+    json["sensor"] = sensor;
     json["mqtt"]["server"] = mqtt.server;
     json["mqtt"]["port"] = mqtt.port;
     json["mqtt"]["username"] = mqtt.username;
@@ -28,11 +27,10 @@ DynamicJsonDocument Settings::get_json() const {
 }
 
 void Settings::load(const JsonDocument & json) {
-    fan.auto_on_dh = json["fan"]["auto_on_humidity_difference"] | 10;
-    fan.auto_off_dh = json["fan"]["auto_off_humidity_difference"] | 5;
+    fan.auto_on_humidity = json["fan"]["auto_on_humidity"] | 75;
+    fan.auto_off_humidity = json["fan"]["auto_off_humidity"] | 60;
     fan.force_timeout_minutes = json["fan"]["force_timeout_minutes"] | 15;
-    sensors.inside = json["sensors"]["inside"] | "";
-    sensors.outside = json["sensors"]["outside"] | "";
+    sensor = json["sensor"] | "";
     mqtt.server = json["mqtt"]["server"] | "calor.local";
     mqtt.port = json["mqtt"]["port"] | 1883;
     mqtt.username = json["mqtt"]["username"] | "";
@@ -48,25 +46,23 @@ void Settings::load(const JsonDocument & json) {
 }
 
 void Settings::sanitize() {
-    if (fan.auto_on_dh > 100) {
-        fan.auto_on_dh = 100;
+    if (fan.auto_on_humidity > 100) {
+        fan.auto_on_humidity = 100;
     }
 
-    if (fan.auto_off_dh > 100) {
-        fan.auto_off_dh = 100;
+    if (fan.auto_off_humidity > 100) {
+        fan.auto_off_humidity = 100;
     }
 
-    // auto_on_dh must be grater or equal to auto_off_dh
-    if (fan.auto_off_dh > fan.auto_on_dh) {
-        const auto tmp = fan.auto_off_dh;
-        fan.auto_off_dh = fan.auto_on_dh;
-        fan.auto_on_dh = tmp;
+    // auto_on_humidity must be grater or equal to auto_off_humidity
+    if (fan.auto_off_humidity > fan.auto_on_humidity) {
+        const auto tmp = fan.auto_off_humidity;
+        fan.auto_off_humidity = fan.auto_on_humidity;
+        fan.auto_on_humidity = tmp;
     }
 
-    sensors.inside.toLowerCase();
-    sensors.inside.trim();
-    sensors.outside.toLowerCase();
-    sensors.outside.trim();
+    sensor.toLowerCase();
+    sensor.trim();
 }
 
 void Settings::print() {

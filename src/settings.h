@@ -10,15 +10,12 @@ struct Settings {
     } net;
 
     struct {
-        double auto_on_dh;
-        double auto_off_dh;
+        double auto_on_humidity;
+        double auto_off_humidity;
         unsigned int force_timeout_minutes;
     } fan;
 
-    struct {
-        String inside;
-        String outside;
-    } sensors;
+    String sensor;
 
     struct {
         String server;

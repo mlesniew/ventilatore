@@ -30,8 +30,7 @@ class FanControl {
         const Settings & settings;
         PicoMQTT::Client & mqtt;
 
-        PicoUtils::TimedValue<double> humidity_inside;
-        PicoUtils::TimedValue<double> humidity_outside;
+        PicoUtils::TimedValue<double> humidity;
 
         void update_relay();
 };

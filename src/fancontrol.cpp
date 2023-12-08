@@ -16,16 +16,14 @@ PicoPrometheus::Gauge air_humidity(get_prometheus(), "air_humidity", "Relative h
 
 FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQTT::Client & mqtt)
     : mode(OFF), fan_running(false), relay(relay), settings(settings), mqtt(mqtt),
-      humidity_inside(std::numeric_limits<double>::quiet_NaN()),
-      humidity_outside(std::numeric_limits<double>::quiet_NaN()) {
+      humidity(std::numeric_limits<double>::quiet_NaN()) {
 
 }
 
 DynamicJsonDocument FanControl::get_json() const {
     StaticJsonDocument<512> json;
     json["fan_running"] = fan_running;
-    json["inside"]["humidity"] = (double) humidity_inside;
-    json["outside"]["humidity"] = (double) humidity_outside;
+    json["humidity"] = (double) humidity;
     switch (mode) {
         case ON: json["mode"] = "on"; break;
         case OFF: json["mode"] = "off"; break;
@@ -35,38 +33,25 @@ DynamicJsonDocument FanControl::get_json() const {
 }
 
 void FanControl::init() {
-    const auto handler = [this](Stream & stream, const char * name, PicoUtils::TimedValue<double> & value) {
-        StaticJsonDocument<512> json;
-        if (deserializeJson(json, stream) || !json.containsKey("humidity")) {
-            return;
-        }
-        value = json["humidity"].as<double>();
-        logger.printf("Updated %s humidity to %.1f %%; current humidity difference is %.1f %%\n",
-                      name, (double) value, (double) humidity_inside - (double) humidity_outside);
-    };
+    if (settings.sensor.length()) {
+        mqtt.subscribe("celsius/+/" + settings.sensor, [this](const char *, Stream & stream) {
+            StaticJsonDocument<512> json;
+            if (deserializeJson(json, stream) || !json.containsKey("humidity")) {
+                return;
+            }
 
-    if (settings.sensors.inside.length()) {
-        mqtt.subscribe("celsius/+/" + settings.sensors.inside, [handler, this](const char *, Stream & stream) {
-            handler(stream, "inside", humidity_inside);
-        });
-    }
-
-    if (settings.sensors.outside.length()) {
-        mqtt.subscribe("celsius/+/" + settings.sensors.outside, [handler, this](const char *, Stream & stream) {
-            handler(stream, "outside", humidity_outside);
+            humidity = json["humidity"].as<double>();
+            logger.printf("Humidity updated to %.1f %%\n", (double) humidity);
         });
     }
 
     metrics::fan_running.bind([this] { return fan_running ? 1 : 0; });
-    metrics::air_humidity[ {{"sensor", "inside"}}].bind([this] { return (double) humidity_inside; });
-    metrics::air_humidity[ {{"sensor", "outside"}}].bind([this] { return (double) humidity_outside; });
+    metrics::air_humidity.bind([this] { return (double) humidity; });
 
     mode = AUTO;
 }
 
 void FanControl::tick() {
-    const auto deltaP = humidity_inside - humidity_outside;
-
     if (mode != AUTO) {
         fan_running = (mode == ON);
 
@@ -77,11 +62,11 @@ void FanControl::tick() {
     }
 
     if (mode == AUTO) {
-        if (fan_running && (deltaP <= settings.fan.auto_off_dh)) {
-            logger.println(F("Humidity difference dropped, stopping fan."));
+        if (fan_running && (humidity <= settings.fan.auto_off_humidity)) {
+            logger.println(F("Humidity dropped, stopping fan."));
             fan_running = false;
-        } else if (!fan_running && (deltaP >= settings.fan.auto_on_dh)) {
-            logger.println(F("Humidity difference raised, starting fan."));
+        } else if (!fan_running && (humidity > settings.fan.auto_on_humidity)) {
+            logger.println(F("Humidity raised, starting fan."));
             fan_running = true;
         }
     }
