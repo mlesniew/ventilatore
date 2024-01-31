@@ -21,7 +21,7 @@ PicoUtils::RestfulServer<ESP8266WebServer> server;
 
 Settings settings;
 
-PicoMQTT::Client mqtt;
+PicoMQ picomq;
 
 PicoPrometheus::Registry & get_prometheus() {
     static PicoPrometheus::Registry registry;
@@ -32,7 +32,7 @@ PicoUtils::PinOutput wifi_led(BLUE_LED, true);
 PicoUtils::Blink led_blinker(wifi_led, 0, 91);
 
 PicoUtils::PinOutput relay(RELAY);
-FanControl fan_control(relay, settings, mqtt);
+FanControl fan_control(relay, settings, picomq);
 
 PicoUtils::PinInput button(BUTTON, true);
 
@@ -146,13 +146,7 @@ void setup() {
 
     server.begin();
 
-    {
-        mqtt.host = settings.mqtt.server;
-        mqtt.port = settings.mqtt.port;
-        mqtt.username = settings.mqtt.username;
-        mqtt.password = settings.mqtt.password;
-        mqtt.begin();
-    }
+    picomq.begin();
 
     {
         ArduinoOTA.setHostname(settings.net.hostname.c_str());
@@ -179,7 +173,7 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
 
 void update_status_led() {
     if (WiFi.status() == WL_CONNECTED) {
-        if (mqtt.connected()) {
+        if (fan_control.healthcheck()) {
             led_blinker.set_pattern(uint64_t(0b101) << 60);
         } else {
             led_blinker.set_pattern(uint64_t(0b1) << 60);
@@ -195,7 +189,7 @@ void loop() {
 
     server.handleClient();
 
-    mqtt.loop();
+    picomq.loop();
 
     switch_proc.tick();
     fan_control.tick();

@@ -14,8 +14,8 @@ PicoPrometheus::Gauge fan_running(get_prometheus(), "fan_running", "Fan running 
 PicoPrometheus::Gauge air_humidity(get_prometheus(), "air_humidity", "Relative humidity in percent");
 }
 
-FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQTT::Client & mqtt)
-    : mode(OFF), fan_running(false), relay(relay), settings(settings), mqtt(mqtt),
+FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQ & picomq)
+    : mode(OFF), fan_running(false), relay(relay), settings(settings), picomq(picomq),
       humidity(std::numeric_limits<double>::quiet_NaN()) {
 
 }
@@ -34,13 +34,8 @@ DynamicJsonDocument FanControl::get_json() const {
 
 void FanControl::init() {
     if (settings.sensor.length()) {
-        mqtt.subscribe("celsius/+/" + settings.sensor, [this](const char *, Stream & stream) {
-            StaticJsonDocument<512> json;
-            if (deserializeJson(json, stream) || !json.containsKey("humidity")) {
-                return;
-            }
-
-            humidity = json["humidity"].as<double>();
+        picomq.subscribe("celsius/+/" + settings.sensor + "/humidity", [this](String payload) {
+            humidity = payload.toDouble();
             logger.printf("Humidity updated to %.1f %%\n", (double) humidity);
         });
     }
