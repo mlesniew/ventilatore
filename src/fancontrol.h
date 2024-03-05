@@ -25,7 +25,7 @@ class FanControl {
         bool healthcheck() const { return humidity.elapsed_millis() <= 60 * 3; }
 
     protected:
-        bool fan_running;
+        PicoUtils::TimedValue<bool> fan_running;
 
         PicoUtils::BinaryOutput & relay;
         const Settings & settings;

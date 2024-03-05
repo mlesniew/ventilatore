@@ -21,8 +21,8 @@ FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & setting
 }
 
 DynamicJsonDocument FanControl::get_json() const {
-    StaticJsonDocument<512> json;
-    json["fan_running"] = fan_running;
+    DynamicJsonDocument json(512);
+    json["fan_running"] = (bool) fan_running;
     json["humidity"] = (double) humidity;
     switch (mode) {
         case ON: json["mode"] = "on"; break;
@@ -57,12 +57,21 @@ void FanControl::tick() {
     }
 
     if (mode == AUTO) {
-        if (fan_running && (humidity <= settings.fan.auto_off_humidity)) {
-            logger.println(F("Humidity dropped, stopping fan."));
-            fan_running = false;
-        } else if (!fan_running && (humidity > settings.fan.auto_on_humidity)) {
-            logger.println(F("Humidity raised, starting fan."));
-            fan_running = true;
+        if (fan_running) {
+            if (fan_running.elapsed_millis() >= settings.fan.max_auto_on_time) {
+                logger.println(F("Max fan run time reached, stopping fan."));
+                fan_running = false;
+            }
+
+            if ((fan_running.elapsed_millis() >= settings.fan.min_auto_on_time) && (humidity <= settings.fan.auto_off_humidity)) {
+                logger.println(F("Humidity dropped, stopping fan."));
+                fan_running = false;
+            }
+        } else {
+            if (humidity > settings.fan.auto_on_humidity) {
+                logger.println(F("Humidity raised, starting fan."));
+                fan_running = true;
+            }
         }
     }
 

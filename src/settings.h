@@ -13,6 +13,8 @@ struct Settings {
         double auto_on_humidity;
         double auto_off_humidity;
         unsigned int force_timeout_minutes;
+        unsigned int max_auto_on_time;
+        unsigned int min_auto_on_time;
     } fan;
 
     String sensor;
