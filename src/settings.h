@@ -15,6 +15,8 @@ struct Settings {
         unsigned int force_timeout_minutes;
         unsigned int max_auto_on_time;
         unsigned int min_auto_on_time;
+        unsigned int max_auto_off_time;
+        unsigned int min_auto_off_time;
     } fan;
 
     String sensor;

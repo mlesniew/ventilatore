@@ -62,18 +62,25 @@ void FanControl::tick() {
     const auto auto_on_humidity = std::min(settings.fan.humidity + settings.fan.hysteresis / 2, 100.0);
 
     if (mode == AUTO) {
+        unsigned int elapsed = fan_running.elapsed_millis() / 1000;
+
         if (fan_running) {
-            if (fan_running.elapsed_millis() >= settings.fan.max_auto_on_time) {
+            if (settings.fan.max_auto_on_time && elapsed >= settings.fan.max_auto_on_time) {
                 logger.println(F("Max fan run time reached, stopping fan."));
                 fan_running = false;
             }
 
-            if ((fan_running.elapsed_millis() >= settings.fan.min_auto_on_time) && (humidity <= auto_off_humidity)) {
+            if ((elapsed >= settings.fan.min_auto_on_time) && (humidity <= auto_off_humidity)) {
                 logger.println(F("Humidity dropped, stopping fan."));
                 fan_running = false;
             }
         } else {
-            if (humidity > auto_on_humidity) {
+            if (settings.fan.max_auto_off_time && elapsed >= settings.fan.max_auto_off_time) {
+                logger.println(F("Max fan inactivity time reached, starting fan."));
+                fan_running = true;
+            }
+
+            if ((humidity > auto_on_humidity) && (elapsed >= settings.fan.min_auto_off_time)) {
                 logger.println(F("Humidity raised, starting fan."));
                 fan_running = true;
             }
