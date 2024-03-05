@@ -6,6 +6,12 @@
 
 extern Print & logger;
 
+namespace {
+double clamp(const double val, const double lo, const double hi) {
+    return val < lo ? lo : (val > hi ? hi : val);
+}
+}
+
 JsonDocument Settings::get_json() const {
     JsonDocument json;
     json["fan"]["humidity"] = fan.humidity;
@@ -54,13 +60,9 @@ void Settings::load(const JsonDocument & json) {
 }
 
 void Settings::sanitize() {
-    if (fan.humidity > 100) {
-        fan.humidity = 100;
-    }
-
-    if (fan.hysteresis > 50) {
-        fan.hysteresis = 50;
-    }
+    fan.humidity = clamp(fan.humidity, 20, 80);
+    fan.hysteresis = clamp(fan.hysteresis, 5, 20);
+    fan.humidity = clamp(fan.humidity, 10.0 + fan.hysteresis / 2, 90.0 - fan.hysteresis / 2);
 
     sensor.trim();
 }

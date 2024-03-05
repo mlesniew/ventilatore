@@ -89,8 +89,8 @@ void autodiscovery() {
     };
 
     static const ConfigNumber config_numbers[] = {
-        {"target-humidity", "Target humidity", "target_humidity", 0, 100},
-        {"humidity-hysteresis", "Humidity hysteresis", "humidity_hysteresis", 0, 20},
+        {"target-humidity", "Target humidity", "target_humidity", 20, 80},
+        {"humidity-hysteresis", "Humidity hysteresis", "humidity_hysteresis", 5, 20},
     };
 
     for (const auto & e : config_numbers) {
@@ -166,10 +166,12 @@ void init() {
     mqtt.subscribe("ventilatore/" + board_id + "/mode/set", handler);
 
     mqtt.subscribe("ventilatore/" + board_id + "/target_humidity/set", [](String payload) {
-        settings.fan.humidity = std::max(0.0, std::min(100.0,payload.toDouble()));
+        settings.fan.humidity = payload.toDouble();
+        settings.sanitize();
     });
     mqtt.subscribe("ventilatore/" + board_id + "/humidity_hysteresis/set", [](String payload) {
-        settings.fan.hysteresis = std::max(0.0, std::min(50.0,payload.toDouble()));
+        settings.fan.hysteresis = payload.toDouble();
+        settings.sanitize();
     });
 
     mqtt.begin();

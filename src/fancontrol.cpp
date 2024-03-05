@@ -59,8 +59,8 @@ void FanControl::tick() {
 
     const bool just_entered_auto = mode.elapsed_millis() <= fan_running.elapsed_millis();
 
-    const auto auto_off_humidity = std::max(settings.fan.humidity - settings.fan.hysteresis / 2, 0.0);
-    const auto auto_on_humidity = std::min(settings.fan.humidity + settings.fan.hysteresis / 2, 100.0);
+    const auto auto_off_humidity = settings.fan.humidity - settings.fan.hysteresis / 2;
+    const auto auto_on_humidity = settings.fan.humidity + settings.fan.hysteresis / 2;
 
     const bool wet = (humidity > auto_on_humidity);
     const bool dry = (humidity <= auto_off_humidity);
