@@ -8,8 +8,8 @@ extern Print & logger;
 
 JsonDocument Settings::get_json() const {
     JsonDocument json;
-    json["fan"]["auto_on_humidity"] = fan.auto_on_humidity;
-    json["fan"]["auto_off_humidity"] = fan.auto_off_humidity;
+    json["fan"]["humidity"] = fan.humidity;
+    json["fan"]["hysteresis"] = fan.hysteresis;
     json["fan"]["force_timeout_minutes"] = fan.force_timeout_minutes;
     json["fan"]["max_auto_on_time"] = fan.max_auto_on_time;
     json["fan"]["min_auto_on_time"] = fan.min_auto_on_time;
@@ -29,8 +29,8 @@ JsonDocument Settings::get_json() const {
 }
 
 void Settings::load(const JsonDocument & json) {
-    fan.auto_on_humidity = json["fan"]["auto_on_humidity"] | 75;
-    fan.auto_off_humidity = json["fan"]["auto_off_humidity"] | 60;
+    fan.humidity = json["fan"]["humidity"] | 10;
+    fan.hysteresis = json["fan"]["hysteresis"] | 65;
     fan.force_timeout_minutes = json["fan"]["force_timeout_minutes"] | 15;
     fan.max_auto_on_time = json["fan"]["max_auto_on_time"] | 60;
     fan.min_auto_on_time = json["fan"]["min_auto_on_time"] | 20;
@@ -50,22 +50,14 @@ void Settings::load(const JsonDocument & json) {
 }
 
 void Settings::sanitize() {
-    if (fan.auto_on_humidity > 100) {
-        fan.auto_on_humidity = 100;
+    if (fan.humidity > 100) {
+        fan.humidity = 100;
     }
 
-    if (fan.auto_off_humidity > 100) {
-        fan.auto_off_humidity = 100;
+    if (fan.hysteresis > 50) {
+        fan.hysteresis = 50;
     }
 
-    // auto_on_humidity must be grater or equal to auto_off_humidity
-    if (fan.auto_off_humidity > fan.auto_on_humidity) {
-        const auto tmp = fan.auto_off_humidity;
-        fan.auto_off_humidity = fan.auto_on_humidity;
-        fan.auto_on_humidity = tmp;
-    }
-
-    sensor.toLowerCase();
     sensor.trim();
 }
 

@@ -29,6 +29,8 @@ JsonDocument FanControl::get_json() const {
         case OFF: json["mode"] = "off"; break;
         case AUTO: json["mode"] = "auto"; break;
     }
+    json["target_humidity"] = settings.fan.humidity;
+    json["hysteresis"] = settings.fan.hysteresis;
     return json;
 }
 
@@ -56,6 +58,9 @@ void FanControl::tick() {
         }
     }
 
+    const auto auto_off_humidity = std::max(settings.fan.humidity - settings.fan.hysteresis / 2, 0.0);
+    const auto auto_on_humidity = std::min(settings.fan.humidity + settings.fan.hysteresis / 2, 100.0);
+
     if (mode == AUTO) {
         if (fan_running) {
             if (fan_running.elapsed_millis() >= settings.fan.max_auto_on_time) {
@@ -63,12 +68,12 @@ void FanControl::tick() {
                 fan_running = false;
             }
 
-            if ((fan_running.elapsed_millis() >= settings.fan.min_auto_on_time) && (humidity <= settings.fan.auto_off_humidity)) {
+            if ((fan_running.elapsed_millis() >= settings.fan.min_auto_on_time) && (humidity <= auto_off_humidity)) {
                 logger.println(F("Humidity dropped, stopping fan."));
                 fan_running = false;
             }
         } else {
-            if (humidity > settings.fan.auto_on_humidity) {
+            if (humidity > auto_on_humidity) {
                 logger.println(F("Humidity raised, starting fan."));
                 fan_running = true;
             }

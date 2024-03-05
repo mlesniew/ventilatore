@@ -10,8 +10,8 @@ struct Settings {
     } net;
 
     struct {
-        double auto_on_humidity;
-        double auto_off_humidity;
+        double humidity;
+        double hysteresis;
         unsigned int force_timeout_minutes;
         unsigned int max_auto_on_time;
         unsigned int min_auto_on_time;
