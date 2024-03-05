@@ -6,8 +6,8 @@
 
 extern Print & logger;
 
-DynamicJsonDocument Settings::get_json() const {
-    DynamicJsonDocument json(1024);
+JsonDocument Settings::get_json() const {
+    JsonDocument json;
     json["fan"]["auto_on_humidity"] = fan.auto_on_humidity;
     json["fan"]["auto_off_humidity"] = fan.auto_off_humidity;
     json["fan"]["force_timeout_minutes"] = fan.force_timeout_minutes;

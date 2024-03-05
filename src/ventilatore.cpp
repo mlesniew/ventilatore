@@ -97,7 +97,7 @@ void setup() {
     LittleFS.begin();
 
     {
-        const auto config = PicoUtils::JsonConfigFile<StaticJsonDocument<1024>>(LittleFS, FPSTR(CONFIG_FILE));
+        const auto config = PicoUtils::JsonConfigFile<JsonDocument>(LittleFS, FPSTR(CONFIG_FILE));
         settings.load(config);
         settings.print();
     }
@@ -134,7 +134,7 @@ void setup() {
     server.on("/config.json", HTTP_GET, [] { server.sendJson(settings.get_json()); });
 
     server.on("/config.json", HTTP_POST, [] {
-        StaticJsonDocument<1024> json;
+        JsonDocument json;
         deserializeJson(json, server.arg("plain"));
         settings.load(json);
         settings.print();

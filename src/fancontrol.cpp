@@ -20,8 +20,8 @@ FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & setting
 
 }
 
-DynamicJsonDocument FanControl::get_json() const {
-    DynamicJsonDocument json(512);
+JsonDocument FanControl::get_json() const {
+    JsonDocument json;
     json["fan_running"] = (bool) fan_running;
     json["humidity"] = (double) humidity;
     switch (mode) {

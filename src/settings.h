@@ -26,7 +26,7 @@ struct Settings {
         String password;
     } mqtt, hass;
 
-    DynamicJsonDocument get_json() const;
+    JsonDocument get_json() const;
     void load(const JsonDocument & json);
 
     void sanitize();

@@ -51,7 +51,7 @@ void autodiscovery() {
         const auto unique_id = board_unique_id + "-fan";
         const String topic = "homeassistant/fan/" + unique_id + "/config";
 
-        StaticJsonDocument<1024> json;
+        JsonDocument json;
         json["unique_id"] = unique_id;
         json["name"] = "Fan";
         json["availability_topic"] = "ventilatore/" + board_id + "/availability";
