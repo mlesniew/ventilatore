@@ -17,7 +17,6 @@ PicoPrometheus::Gauge air_humidity(get_prometheus(), "air_humidity", "Relative h
 FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQ & picomq)
     : mode(OFF), fan_running(false), relay(relay), settings(settings), picomq(picomq),
       humidity(std::numeric_limits<double>::quiet_NaN()) {
-
 }
 
 JsonDocument FanControl::get_json() const {
@@ -58,29 +57,40 @@ void FanControl::tick() {
         }
     }
 
+    const bool just_entered_auto = mode.elapsed_millis() <= fan_running.elapsed_millis();
+
     const auto auto_off_humidity = std::max(settings.fan.humidity - settings.fan.hysteresis / 2, 0.0);
     const auto auto_on_humidity = std::min(settings.fan.humidity + settings.fan.hysteresis / 2, 100.0);
 
+    const bool wet = (humidity > auto_on_humidity);
+    const bool dry = (humidity <= auto_off_humidity);
+
     if (mode == AUTO) {
-        unsigned int elapsed = fan_running.elapsed_millis() / 1000;
+        unsigned int elapsed = fan_running.elapsed_millis() / (60 * 1000);
 
         if (fan_running) {
-            if (settings.fan.max_auto_on_time && elapsed >= settings.fan.max_auto_on_time) {
+            const bool min_time_elapsed = (elapsed >= settings.fan.min_auto_on_time);
+            const bool max_time_elapsed = (elapsed >= settings.fan.max_auto_on_time) && (settings.fan.max_auto_on_time > 0);
+
+            if (max_time_elapsed) {
                 logger.println(F("Max fan run time reached, stopping fan."));
                 fan_running = false;
             }
 
-            if ((elapsed >= settings.fan.min_auto_on_time) && (humidity <= auto_off_humidity)) {
+            if (dry && (just_entered_auto || min_time_elapsed)) {
                 logger.println(F("Humidity dropped, stopping fan."));
                 fan_running = false;
             }
         } else {
-            if (settings.fan.max_auto_off_time && elapsed >= settings.fan.max_auto_off_time) {
+            const bool min_time_elapsed = (elapsed >= settings.fan.min_auto_off_time);
+            const bool max_time_elapsed = (elapsed >= settings.fan.max_auto_off_time) && (settings.fan.max_auto_off_time > 0);
+
+            if (max_time_elapsed) {
                 logger.println(F("Max fan inactivity time reached, starting fan."));
                 fan_running = true;
             }
 
-            if ((humidity > auto_on_humidity) && (elapsed >= settings.fan.min_auto_off_time)) {
+            if (wet && (just_entered_auto || min_time_elapsed)) {
                 logger.println(F("Humidity raised, starting fan."));
                 fan_running = true;
             }
