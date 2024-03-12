@@ -40,10 +40,10 @@ void Settings::load(const JsonDocument & json) {
     fan.humidity = json["fan"]["humidity"] | 10;
     fan.hysteresis = json["fan"]["hysteresis"] | 65;
     fan.force_timeout_minutes = json["fan"]["force_timeout_minutes"] | 15;
-    fan.max_auto_on_time = json["fan"]["max_auto_on_time"] | 60;
     fan.min_auto_on_time = json["fan"]["min_auto_on_time"] | 20;
+    fan.max_auto_on_time = json["fan"]["max_auto_on_time"] | 60;
     fan.min_auto_off_time = json["fan"]["min_auto_off_time"] | 20;
-    fan.min_auto_off_time = json["fan"]["max_auto_off_time"] | 720;
+    fan.max_auto_off_time = json["fan"]["max_auto_off_time"] | 720;
     sensor = json["sensor"] | "";
     mqtt.server = json["mqtt"]["server"] | "calor.local";
     mqtt.port = json["mqtt"]["port"] | 1883;
