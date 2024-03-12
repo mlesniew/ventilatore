@@ -16,7 +16,9 @@ PicoPrometheus::Gauge air_humidity(get_prometheus(), "air_humidity", "Relative h
 
 FanControl::FanControl(PicoUtils::BinaryOutput & relay, const Settings & settings, PicoMQ & picomq)
     : mode(OFF), fan_running(false), relay(relay), settings(settings), picomq(picomq),
-      humidity(std::numeric_limits<double>::quiet_NaN()) {
+      humidity(std::numeric_limits<double>::quiet_NaN()),
+      periodic(5, [this] { process(); }),
+mode_watch([this] { return mode; }, [this] { process(false); }) {
 }
 
 JsonDocument FanControl::get_json() const {
@@ -36,8 +38,11 @@ JsonDocument FanControl::get_json() const {
 void FanControl::init() {
     if (settings.sensor.length()) {
         picomq.subscribe("celsius/+/" + settings.sensor + "/humidity", [this](String payload) {
+            const bool first_reading = std::isnan(humidity);
             humidity = payload.toDouble();
-            logger.printf("Humidity updated to %.1f %%\n", (double) humidity);
+            if (first_reading) {
+                process(false);
+            }
         });
     }
 
@@ -48,6 +53,11 @@ void FanControl::init() {
 }
 
 void FanControl::tick() {
+    mode_watch.tick();
+    periodic.tick();
+}
+
+void FanControl::process(bool respect_min_times) {
     if (mode != AUTO) {
         fan_running = (mode == ON);
 
@@ -56,8 +66,6 @@ void FanControl::tick() {
             mode = AUTO;
         }
     }
-
-    const bool just_entered_auto = mode.elapsed_millis() <= fan_running.elapsed_millis();
 
     const auto auto_off_humidity = settings.fan.humidity - settings.fan.hysteresis / 2;
     const auto auto_on_humidity = settings.fan.humidity + settings.fan.hysteresis / 2;
@@ -77,7 +85,11 @@ void FanControl::tick() {
                 fan_running = false;
             }
 
-            if (dry && (just_entered_auto || min_time_elapsed)) {
+            if (respect_min_times && !min_time_elapsed) {
+                return;
+            }
+
+            if (dry) {
                 logger.println(F("Humidity dropped, stopping fan."));
                 fan_running = false;
             }
@@ -90,8 +102,11 @@ void FanControl::tick() {
                 fan_running = true;
             }
 
-            if (wet && (just_entered_auto || min_time_elapsed)) {
-                logger.println(F("Humidity raised, starting fan."));
+            if (respect_min_times && !min_time_elapsed) {
+                return;
+            }
+
+            if (wet) {
                 fan_running = true;
             }
         }

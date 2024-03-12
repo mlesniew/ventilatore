@@ -182,4 +182,8 @@ void loop() {
     for (auto & watch : watches) { watch->tick(); }
 }
 
+bool connected() {
+    return mqtt.connected();
+}
+
 }

@@ -29,7 +29,7 @@ PicoPrometheus::Registry & get_prometheus() {
 }
 
 PicoUtils::PinOutput wifi_led(BLUE_LED, true);
-PicoUtils::Blink led_blinker(wifi_led, 0, 91);
+PicoUtils::WiFiControlSmartConfig wifi_control(wifi_led);
 
 PicoUtils::PinOutput relay(RELAY);
 FanControl fan_control(relay, settings, picomq);
@@ -41,58 +41,13 @@ PicoUtils::PinInput toggle_switch(SWITCH);
 PicoSyslog::SimpleLogger syslog("ventilatore");
 Print & logger = syslog;
 
-void setup_wifi() {
-    WiFi.hostname(settings.net.hostname);
-    WiFi.setAutoReconnect(true);
-
-    syslog.println(F("Press button or toggle switch now to enter SmartConfig."));
-    led_blinker.set_pattern(1);
-    const PicoUtils::Stopwatch stopwatch;
-    bool smart_config = false;
-    {
-        const bool initial_switch_pos = toggle_switch;
-        while (!smart_config && (stopwatch.elapsed_millis() < 5 * 1000)) {
-            smart_config = (button || toggle_switch != initial_switch_pos);
-            delay(100);
-        }
-    }
-
-    if (smart_config) {
-        led_blinker.set_pattern(0b100100100 << 9);
-
-        syslog.println(F("Entering SmartConfig mode."));
-        WiFi.beginSmartConfig();
-        while (!WiFi.smartConfigDone() && (stopwatch.elapsed_millis() < 5 * 60 * 1000)) {
-            delay(100);
-        }
-
-        if (WiFi.smartConfigDone()) {
-            syslog.println(F("SmartConfig success."));
-        } else {
-            syslog.println(F("SmartConfig failed.  Reboot."));
-            ESP.reset();
-        }
-    } else {
-        WiFi.softAPdisconnect(true);
-        WiFi.begin();
-    }
-
-    led_blinker.set_pattern(0b10);
-}
-
 void setup() {
     wifi_led.init();
 
-    led_blinker.set_pattern(0b10);
-    PicoUtils::BackgroundBlinker bb(led_blinker);
-
     Serial.begin(115200);
-    delay(5 * 1000);
     Serial.print(F("\n\n"
                    "Ventilatore " __DATE__ " " __TIME__
                    "\n\n"));
-
-    setup_wifi();
 
     LittleFS.begin();
 
@@ -100,6 +55,20 @@ void setup() {
         const auto config = PicoUtils::JsonConfigFile<JsonDocument>(LittleFS, FPSTR(CONFIG_FILE));
         settings.load(config);
         settings.print();
+    }
+
+    {
+        WiFi.hostname(settings.net.hostname);
+        struct XORInput: PicoUtils::BinaryInput {
+            XORInput(PicoUtils::BinaryInput & a, PicoUtils::BinaryInput & b): a(a), b(b) {}
+            PicoUtils::BinaryInput & a;
+            PicoUtils::BinaryInput & b;
+            bool get() const override { return a.get() != b.get(); }
+        } xor_input(button, toggle_switch);
+        wifi_control.init(xor_input, true);
+        wifi_control.get_connectivity_level = [] {
+            return 1 + (fan_control.healthcheck() ? 1 : 0) + (HomeAssistant::connected() ? 1 : 0);
+        };
     }
 
     syslog.server = settings.net.syslog;
@@ -156,8 +125,6 @@ void setup() {
         ArduinoOTA.begin();
     }
 
-    led_blinker.set_pattern(1);
-
     HomeAssistant::init();
 }
 
@@ -171,19 +138,6 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
     last_switch_position = toggle_switch;
 });
 
-void update_status_led() {
-    if (WiFi.status() == WL_CONNECTED) {
-        if (fan_control.healthcheck()) {
-            led_blinker.set_pattern(uint64_t(0b101) << 60);
-        } else {
-            led_blinker.set_pattern(uint64_t(0b1) << 60);
-        }
-    } else {
-        led_blinker.set_pattern(0b1100);
-    }
-    led_blinker.tick();
-};
-
 void loop() {
     ArduinoOTA.handle();  // this also handles MDNS updates
 
@@ -194,7 +148,7 @@ void loop() {
     switch_proc.tick();
     fan_control.tick();
 
-    update_status_led();
+    wifi_control.tick();
 
     HomeAssistant::loop();
 }

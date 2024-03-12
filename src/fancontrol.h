@@ -33,5 +33,8 @@ class FanControl {
 
         PicoUtils::TimedValue<double> humidity;
 
-        void update_relay();
+        PicoUtils::PeriodicRun periodic;
+        PicoUtils::Watch<Mode> mode_watch;
+
+        void process(bool respect_min_times = true);
 };
