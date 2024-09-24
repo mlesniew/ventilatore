@@ -138,6 +138,17 @@ PicoUtils::PeriodicRun switch_proc(0.25, [] {
     last_switch_position = toggle_switch;
 });
 
+void healthcheck() {
+    static PicoUtils::Stopwatch last_healthy;
+
+    if (fan_control.healthcheck()) {
+        last_healthy.reset();
+    } else if (last_healthy.elapsed_millis() >= 15 * 60 * 1000) {
+        logger.println(F("Healthcheck failing for too long, resetting..."));
+        ESP.reset();
+    }
+};
+
 void loop() {
     ArduinoOTA.handle();  // this also handles MDNS updates
 
@@ -151,4 +162,6 @@ void loop() {
     wifi_control.tick();
 
     HomeAssistant::loop();
+
+    healthcheck();
 }
