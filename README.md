@@ -24,15 +24,6 @@ If connected to a WiFi network, a web interface is exposed with live measurement
 
 ![Web interface](/img/screenshot.png)
 
-## Prometheus metrics
-
-Besides the web page, a [Prometheus](https://prometheus.io/) metrics endpoint is exposed.
-These metrics can be then be visualized on [Grafana](https://grafana.com/) dashboards:
-
-![Grafana](/img/grafana.png)
-
-[Grafana dashboard configuration](/grafana.json)
-
 ## Electronics
 
 ### Required parts
